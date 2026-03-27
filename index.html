@@ -25,7 +25,7 @@
             <div class="sidebar-section-title">Overview</div>
             <a href="#intro">Introduction</a>
             <a href="#guided-lesson">Guided lesson</a>
-            <a href="#math-connection">Growth, Decay, and Rate of Change</a>
+            <a href="#math-connection">Math Foundations: Measuring Relative Change</a>
             <div class="sidebar-section-title">Modules</div>
             <a href="#distributions">1. Distribution families</a>
             <a href="#sample-space">2. Sample space</a>
@@ -109,13 +109,13 @@
 
                 <section class="panel concept-bridge" id="math-connection">
                     <div class="concept-header">
-                        <p class="module-kicker">Growth, Decay, and Rate of Change</p>
-                        <h2>Exponents, logarithms, and derivatives work as one system</h2>
+                        <p class="module-kicker">Math Foundations: Measuring Relative Change</p>
+                        <h2>From core calculus to machine learning optimization</h2>
                         <p>
-                            Exponents, logarithms, and derivatives are all ways to describe how one quantity depends on
-                            another. Exponents model multiplicative dependence, logarithms invert that dependence, and
-                            derivatives measure its local rate of change. A clean way to see the connection is to follow
-                            one example all the way through.
+                            Exponents, logarithms, derivatives, and differentials form one chain used directly in
+                            machine learning. Exponents describe growth/decay, logarithms convert multiplicative
+                            relationships into additive ones (as in log-likelihood and cross-entropy), and derivatives
+                            quantify sensitivity of a model objective to small parameter changes.
                         </p>
                         <p>
                             Suppose a quantity starts at 100 and doubles every hour, and let
@@ -123,8 +123,9 @@
                                 class="inline-math">t</span>
                             hours. Then the three ideas line up naturally: the exponential gives the rule, the logarithm
                             recovers the input from the output, and the derivative tells us how fast the output is
-                            changing
-                            with respect to time.
+                            changing with respect to time. In ML we apply the same pattern to a loss function
+                            <span class="inline-math">L(\theta)</span>: gradients show direction of steepest increase,
+                            and optimization moves parameters in the opposite direction.
                         </p>
                         <p>
                             Notation in this section is fixed: <span class="inline-math">log<sub>2</sub></span> means a
@@ -180,7 +181,7 @@
                         </article>
                         <article class="comparison-card concept-card">
                             <p class="module-kicker">Derivatives</p>
-                            <h3>Derivatives measure rate of change</h3>
+                            <h3>Derivatives and differentials drive learning updates</h3>
                             <p>
                                 A derivative measures growth or decay of one quantity with respect to another quantity.
                                 Here it tells us how the quantity changes with respect to time, not just over a full
@@ -190,6 +191,15 @@
                                 rate of change is proportional to the current amount: the bigger the quantity becomes,
                                 the
                                 faster it grows.
+                            </p>
+                            <p>
+                                In machine learning, replace time with parameters <span
+                                    class="inline-math">\theta</span> and replace the measured quantity with loss
+                                <span class="inline-math">L(\theta)</span>. The differential
+                                <span class="inline-math">dL</span> approximates how tiny parameter moves
+                                <span class="inline-math">d\theta</span> change loss:
+                                <span class="inline-math">dL \approx \nabla L(\theta)^T d\theta</span>.
+                                This is the local linear view used by gradient descent and backpropagation.
                             </p>
                             <div class="formula-card concept-formula">
                                 <strong><span class="inline-math">f'(t) = log(2)f(t)</span></strong>
@@ -211,6 +221,12 @@
                                         1</span>
                                     to <span class="inline-math">t = 2</span> is
                                     <span class="inline-math">(400 - 200)/(2 - 1) = 200</span> units per hour.
+                                </p>
+                                <p>
+                                    ML update rule uses the same idea in vector form:
+                                    <span class="inline-math">\theta_{t+1} = \theta_t - \eta \nabla L(\theta_t)</span>.
+                                    The gradient gives direction and scale of local change; the learning rate
+                                    <span class="inline-math">\eta</span> controls step size.
                                 </p>
                             </div>
                         </article>
@@ -247,10 +263,10 @@
                             the instantaneous growth rate.
                         </p>
                         <p>
-                            Probability and statistics use the same pattern. Exponentials appear in growth and decay
-                            models, logarithms simplify multiplicative relationships such as likelihoods, and
-                            derivatives
-                            are used to measure sensitivity, rates, slopes, and best-fitting parameters.
+                            Probability, statistics, and ML use the same pattern. Exponentials appear in growth and
+                            softmax-style models, logarithms simplify likelihood objectives, and
+                            derivatives/differentials
+                            provide the local sensitivity needed for backpropagation and gradient-based learning.
                         </p>
                         <p class="math-block"><span class="inline-math">multiplicative dependence -> inverse log view ->
                                 derivative for local change or optimization</span></p>
@@ -397,6 +413,36 @@
                                     <li>E[X] = (1−π) · μ<sub>+</sub></li>
                                     <li>Chart shows a bar at 0 plus a density curve</li>
                                     <li>Real uses: insurance claims, usage data with many zeros</li>
+                                </ul>
+                            </div>
+
+                            <div class="dist-type-card dist-type-pmf-cdf-pdf">
+                                <p class="module-kicker">Distribution functions</p>
+                                <h3>PMF, PDF, and CDF at a glance</h3>
+                                <p>
+                                    These three functions describe probability in different variable types.
+                                    PMF is used for discrete outcomes, PDF is used for continuous outcomes,
+                                    and CDF works for both by accumulating probability up to a threshold.
+                                </p>
+                                <div class="dist-rule-block">
+                                    <span class="dist-rule-label">Core definitions</span>
+                                    <code>PMF: p(k) = P(X = k)</code><br />
+                                    <code>PDF: f(x), with P(a ≤ X ≤ b) = ∫<sub>a</sub><sup>b</sup> f(x) dx</code><br />
+                                    <code>CDF: F(x) = P(X ≤ x)</code>
+                                </div>
+                                <div class="dist-impact-block">
+                                    <span class="dist-rule-label">How to use them</span>
+                                    <p>
+                                        Use PMF when exact values can have nonzero probability.
+                                        Use PDF when exact points have probability 0 and only intervals matter.
+                                        Use CDF when you need cumulative questions like "What is the chance the value is
+                                        at most x?"
+                                    </p>
+                                </div>
+                                <ul class="dist-facts">
+                                    <li>Discrete: PMF + CDF</li>
+                                    <li>Continuous: PDF + CDF</li>
+                                    <li>CDF is monotone increasing and ranges from 0 to 1</li>
                                 </ul>
                             </div>
                         </div>
