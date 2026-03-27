@@ -705,47 +705,53 @@
 
                             <article class="dist-type-card foundation-entropy">
                                 <p class="module-kicker">Information theory</p>
-                                <h3>Shannon entropy measures uncertainty</h3>
+                                <h3>Entropy compares fair vs loaded die</h3>
                                 <p>
-                                    Entropy quantifies noise in outcomes for a known outcome space.
-                                    For a die, outcomes are fixed as {1, 2, 3, 4, 5, 6}. What changes is the
-                                    probability distribution over that space. If all outcomes are equally likely,
-                                    entropy is high; if one outcome dominates, entropy drops because outcomes become
-                                    easier to predict.
+                                    Entropy measures the average uncertainty in outcomes. Two graphs below show:
+                                    a <strong>fair die</strong> (left) where all faces {1, 2, 3, 4, 5, 6} are equally
+                                    likely,
+                                    and a <strong>loaded die</strong> (right) where face 6 is biased. As one outcome
+                                    becomes
+                                    more probable, the distribution becomes more predictable and entropy drops.
                                 </p>
                                 <div class="dist-rule-block">
-                                    <span class="dist-rule-label">Entropy on a discrete outcome space</span>
+                                    <span class="dist-rule-label">Entropy formula (discrete outcomes)</span>
                                     <code>H(X) = -Σ p(x) log₂ p(x)</code>
-                                    Measured in bits. For a fair die, <code>H(X)=log₂(6)≈2.585</code> bits.
+                                    Measured in bits. Fair die: <code>H(X) = log₂(6) ≈ 2.585 bits</code>
                                 </div>
                                 <svg id="entropy-dice-explorer-svg" class="foundation-mini-svg"
-                                    aria-label="D3 entropy explorer for a loaded die"></svg>
+                                    aria-label="Fair die vs loaded die entropy comparison with die icons"></svg>
                                 <div class="mini-control-row">
-                                    <label for="entropy-die-p6-slider">Loaded die: P(6) = <strong
+                                    <label for="entropy-die-p6-slider">Adjust loaded die: P(6) = <strong
                                             id="entropy-die-p6-value">0.50</strong></label>
                                     <input id="entropy-die-p6-slider" type="range" min="0.17" max="0.90" step="0.01"
                                         value="0.50" />
                                 </div>
                                 <p class="dist-example-note">
-                                    As P(6) increases, probability mass concentrates on one face and entropy drops,
-                                    indicating less outcome noise.
+                                    Left panel (blue): fair die with equal probabilities and maximum entropy.
+                                    Right panel (red): loaded die with P(6) biased by slider. Notice entropy decreases
+                                    as one outcome dominates.
                                 </p>
                             </article>
 
                             <article class="dist-type-card foundation-pattern">
                                 <p class="module-kicker">Entropy patterns</p>
-                                <h3>Black-box vs white-box with the same die</h3>
+                                <h3>Black-box vs white-box analysis on same die</h3>
                                 <p>
-                                    Entropy can be used in two ways. In black-box mode, you only observe output
-                                    probabilities and report uncertainty H(output). In white-box mode, you inspect
-                                    internal structure (for example a split such as even vs odd) and compute
-                                    information gain from entropy reduction.
+                                    Entropy can be used in two ways. In <strong>black-box</strong> mode, you only
+                                    observe
+                                    final probabilities and report uncertainty H(output). In <strong>white-box</strong>
+                                    mode,
+                                    you inspect internal structure (for example a partition like even vs odd) and
+                                    compute
+                                    information gain from entropy reduction after the split.
                                 </p>
                                 <svg id="entropy-workflow-svg" class="foundation-mini-svg"
-                                    aria-label="Black box and white box entropy explanation"></svg>
+                                    aria-label="Black-box and white-box entropy explanation"></svg>
                                 <p class="dist-example-note">
-                                    Left panel uses only final probabilities. Right panel shows entropy before and after
-                                    a split and reports information gain.
+                                    Left panel: black-box treats die as a single outcome distribution.
+                                    Right panel: white-box shows how entropy changes when you split outcomes into
+                                    groups.
                                 </p>
                             </article>
 

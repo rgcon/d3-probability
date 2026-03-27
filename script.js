@@ -1689,7 +1689,42 @@ function getLoadedDieProbabilities(pSix) {
     return [rest, rest, rest, rest, rest, pSix];
 }
 
-function drawEntropyDiceExplorer() {
+// Helper: Simple SVG die icon (cube face with dots)
+function drawDieIcon(g, x, y, size, numDots) {
+    // Draw cube face
+    g.append("rect")
+        .attr("x", x)
+        .attr("y", y)
+        .attr("width", size)
+        .attr("height", size)
+        .attr("fill", "#fff")
+        .attr("stroke", "#202124")
+        .attr("stroke-width", 1.5)
+        .attr("rx", 2);
+
+    // Helper to compute dot positions for common die faces
+    const dotRadius = size / 12;
+    const dotMap = {
+        1: [[0.5, 0.5]],
+        2: [[0.25, 0.25], [0.75, 0.75]],
+        3: [[0.25, 0.25], [0.5, 0.5], [0.75, 0.75]],
+        4: [[0.25, 0.25], [0.75, 0.25], [0.25, 0.75], [0.75, 0.75]],
+        5: [[0.25, 0.25], [0.75, 0.25], [0.5, 0.5], [0.25, 0.75], [0.75, 0.75]],
+        6: [[0.25, 0.25], [0.25, 0.5], [0.25, 0.75], [0.75, 0.25], [0.75, 0.5], [0.75, 0.75]],
+    };
+
+    const positions = dotMap[Math.min(numDots, 6)] || dotMap[1];
+    g.selectAll("circle.die-dot")
+        .data(positions)
+        .join("circle")
+        .attr("class", "die-dot")
+        .attr("cx", (d) => x + d[0] * size)
+        .attr("cy", (d) => y + d[1] * size)
+        .attr("r", dotRadius)
+        .attr("fill", "#202124");
+}
+
+function drawFairVsLoadedDice() {
     const svg = d3.select("#entropy-dice-explorer-svg");
     if (svg.empty()) return;
 
@@ -1698,54 +1733,127 @@ function drawEntropyDiceExplorer() {
         entropyDieP6Value.textContent = pSix.toFixed(2);
     }
 
-    const probs = getLoadedDieProbabilities(pSix);
-    const entropy = shannonEntropy(probs);
-    const fairEntropy = Math.log2(6);
+    const fairProbs = [1 / 6, 1 / 6, 1 / 6, 1 / 6, 1 / 6, 1 / 6];
+    const loadedProbs = getLoadedDieProbabilities(pSix);
+    const fairEntropy = shannonEntropy(fairProbs);
+    const loadedEntropy = shannonEntropy(loadedProbs);
 
-    const W = 560, H = 210;
-    const m = { top: 34, right: 18, bottom: 38, left: 42 };
+    const W = 580, H = 240;
+    const m = { top: 20, right: 12, bottom: 28, left: 12 };
     const iW = W - m.left - m.right;
     const iH = H - m.top - m.bottom;
+    const panelGap = 16;
+    const panelW = (iW - panelGap) / 2;
+    const dieSize = 28;
 
     svg.attr("viewBox", `0 0 ${W} ${H}`);
     svg.selectAll("*").remove();
     const g = svg.append("g").attr("transform", `translate(${m.left},${m.top})`);
 
-    const x = d3.scaleBand().domain(["1", "2", "3", "4", "5", "6"]).range([0, iW]).padding(0.2);
-    const y = d3.scaleLinear().domain([0, 0.95]).range([iH, 0]);
+    // ===== LEFT PANEL: FAIR DIE =====
+    const left = g.append("g");
+    left.append("rect")
+        .attr("x", 0).attr("y", 0).attr("width", panelW).attr("height", iH)
+        .attr("fill", "#f8f9fa").attr("stroke", "#dadce0").attr("rx", 6);
 
-    g.selectAll("rect.prob")
-        .data(probs)
+    // Die icon
+    drawDieIcon(left, 8, 8, dieSize, 6);
+    left.append("text")
+        .attr("x", 8 + dieSize + 8)
+        .attr("y", 20)
+        .attr("font-size", 11)
+        .attr("font-weight", "600")
+        .attr("fill", "#1a73e8")
+        .text("FAIR DIE");
+
+    // Bar chart for fair die
+    const lx = d3.scaleBand().domain(["1", "2", "3", "4", "5", "6"]).range([8, panelW - 8]).padding(0.25);
+    const ly = d3.scaleLinear().domain([0, 0.95]).range([iH - 48, 42]);
+
+    left.selectAll("rect.fair-bar")
+        .data(fairProbs)
         .join("rect")
-        .attr("class", "prob")
-        .attr("x", (_, i) => x(String(i + 1)))
-        .attr("y", (d) => y(d))
-        .attr("width", x.bandwidth())
-        .attr("height", (d) => iH - y(d))
-        .attr("fill", (_, i) => (i === 5 ? "#ea4335" : "#1a73e8"))
-        .attr("rx", 3);
+        .attr("class", "fair-bar")
+        .attr("x", (_, i) => lx(String(i + 1)))
+        .attr("y", (d) => ly(d))
+        .attr("width", lx.bandwidth())
+        .attr("height", (d) => (iH - 48) - ly(d))
+        .attr("fill", "#1a73e8")
+        .attr("opacity", 0.8)
+        .attr("rx", 2);
 
-    g.append("g").attr("class", "axis").attr("transform", `translate(0,${iH})`).call(d3.axisBottom(x));
-    g.append("g").attr("class", "axis").call(d3.axisLeft(y).ticks(4).tickFormat(d3.format(".2f")));
+    left.append("text")
+        .attr("x", 8)
+        .attr("y", iH - 8)
+        .attr("font-size", 10)
+        .attr("fill", "#202124")
+        .text(`H(die) = ${fairEntropy.toFixed(3)} bits`);
 
+    // ===== RIGHT PANEL: LOADED DIE =====
+    const right = g.append("g").attr("transform", `translate(${panelW + panelGap}, 0)`);
+    right.append("rect")
+        .attr("x", 0).attr("y", 0).attr("width", panelW).attr("height", iH)
+        .attr("fill", "#f8f9fa").attr("stroke", "#dadce0").attr("rx", 6);
+
+    // Die icon showing loaded 6
+    drawDieIcon(right, 8, 8, dieSize, 5); // Hint: fewer dots
+    right.append("circle")
+        .attr("cx", 8 + dieSize * 0.75)
+        .attr("cy", 8 + dieSize * 0.75)
+        .attr("r", dieSize / 12)
+        .attr("fill", "#ea4335"); // Highlight P(6)
+
+    right.append("text")
+        .attr("x", 8 + dieSize + 8)
+        .attr("y", 20)
+        .attr("font-size", 11)
+        .attr("font-weight", "600")
+        .attr("fill", "#ea4335")
+        .text("LOADED DIE");
+
+    // Bar chart for loaded die
+    const rx = d3.scaleBand().domain(["1", "2", "3", "4", "5", "6"]).range([8, panelW - 8]).padding(0.25);
+    const ry = d3.scaleLinear().domain([0, 0.95]).range([iH - 48, 42]);
+
+    right.selectAll("rect.loaded-bar")
+        .data(loadedProbs)
+        .join("rect")
+        .attr("class", "loaded-bar")
+        .attr("x", (_, i) => rx(String(i + 1)))
+        .attr("y", (d) => ry(d))
+        .attr("width", rx.bandwidth())
+        .attr("height", (d) => (iH - 48) - ry(d))
+        .attr("fill", (_, i) => (i === 5 ? "#ea4335" : "#4285f4"))
+        .attr("opacity", 0.8)
+        .attr("rx", 2);
+
+    // Label P(6) on loaded die
+    const p6Bar = loadedProbs[5];
+    right.append("text")
+        .attr("x", rx("6") + rx.bandwidth() / 2)
+        .attr("y", ry(p6Bar) - 4)
+        .attr("text-anchor", "middle")
+        .attr("font-size", 9)
+        .attr("fill", "#c5221f")
+        .text(`${p6Bar.toFixed(2)}`);
+
+    right.append("text")
+        .attr("x", 8)
+        .attr("y", iH - 8)
+        .attr("font-size", 10)
+        .attr("fill", "#202124")
+        .text(`H(die) = ${loadedEntropy.toFixed(3)} bits`);
+
+    // Entropy comparison label
+    const entropyDiff = fairEntropy - loadedEntropy;
     g.append("text")
-        .attr("x", 0).attr("y", -12)
-        .attr("font-size", 11).attr("fill", "#202124")
-        .text(`Loaded die distribution  •  H(X) = ${entropy.toFixed(3)} bits`);
-
-    g.append("text")
-        .attr("x", iW - 2).attr("y", -12)
-        .attr("text-anchor", "end")
-        .attr("font-size", 10).attr("fill", "#5f6368")
-        .text(`Fair die entropy = ${fairEntropy.toFixed(3)} bits`);
-
-    g.append("text")
-        .attr("x", x("6") + x.bandwidth() / 2)
-        .attr("y", y(probs[5]) - 6)
+        .attr("x", iW / 2)
+        .attr("y", -2)
         .attr("text-anchor", "middle")
         .attr("font-size", 10)
-        .attr("fill", "#c5221f")
-        .text(`P(6)=${probs[5].toFixed(2)}`);
+        .attr("fill", "#5f6368")
+        .text(entropyDiff > 0 ? `Loaded die has less entropy (ΔH = ${entropyDiff.toFixed(3)} bits)`
+            : "Entropy increases with uniform distribution");
 }
 
 function drawEntropyWorkflow() {
@@ -1943,7 +2051,7 @@ function drawDescentExample() {
 }
 
 drawLossExample();
-drawEntropyDiceExplorer();
+drawFairVsLoadedDice();
 drawEntropyWorkflow();
 drawGradientExample();
 drawDescentExample();
@@ -1953,7 +2061,7 @@ if (lossErrorSlider) {
 }
 if (entropyDieP6Slider) {
     entropyDieP6Slider.addEventListener("input", () => {
-        drawEntropyDiceExplorer();
+        drawFairVsLoadedDice();
         drawEntropyWorkflow();
     });
 }
