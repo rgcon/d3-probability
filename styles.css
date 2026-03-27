@@ -930,6 +930,17 @@ button.ghost:hover {
     border-radius: 6px;
 }
 
+.mini-control-row {
+    display: grid;
+    gap: 6px;
+    margin-top: 4px;
+}
+
+.mini-control-row label {
+    font-size: 12px;
+    color: var(--text-secondary);
+}
+
 .foundation-loss {
     border-top-color: #4285f4;
 }
@@ -944,6 +955,10 @@ button.ghost:hover {
 
 .foundation-descent {
     border-top-color: #1a73e8;
+}
+
+.foundation-pattern {
+    border-top-color: #9c27b0;
 }
 
 @media (max-width: 960px) {
