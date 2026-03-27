@@ -1,0 +1,1400 @@
+/* global d3 */
+
+const palette = {
+    accent: "#d95d39",
+    accentSoft: "#f1b38d",
+    secondary: "#2c7a7b",
+    secondarySoft: "#bfe3da",
+    ink: "#1b1f1e",
+    muted: "#5d655f",
+    line: "rgba(27, 31, 30, 0.12)",
+};
+
+const dieEvents = {
+    even: {
+        label: "Even numbers",
+        outcomes: [2, 4, 6],
+        description: "Three favorable outcomes out of six equally likely die faces.",
+    },
+    prime: {
+        label: "Prime numbers",
+        outcomes: [2, 3, 5],
+        description: "The prime faces are 2, 3, and 5, so the event covers half of the sample space.",
+    },
+    "greater-than-4": {
+        label: "Greater than 4",
+        outcomes: [5, 6],
+        description: "Only two faces satisfy the event, so the probability is smaller than one half.",
+    },
+    "at-least-2": {
+        label: "At least 2",
+        outcomes: [2, 3, 4, 5, 6],
+        description: "Five of the six possible outcomes satisfy the event.",
+    },
+    "exactly-1": {
+        label: "Exactly 1",
+        outcomes: [1],
+        description: "A single exact face is one favorable outcome out of six.",
+    },
+};
+
+const distributionTypes = {
+    discrete: {
+        title: "Discrete distribution",
+        example: "Poisson arrivals such as customer clicks in one minute",
+        support: "Countable outcomes such as 0, 1, 2, 3, ...",
+        probabilityRule: "Use a probability mass function. Individual values can have nonzero probability.",
+        statisticalLearning:
+            "Statistical learning typically starts with an explicit generative assumption such as Bernoulli, Poisson, or negative binomial, then estimates parameters and uncertainty.",
+        machineLearning:
+            "Machine learning usually treats the task as prediction or classification, optimizing loss on labels or counts and allowing more flexible features with less emphasis on full distributional interpretation.",
+        chartTitle: "Poisson example: probability mass sits on separate counts",
+    },
+    continuous: {
+        title: "Continuous distribution",
+        example: "Normal approximation for checkout time or measurement error",
+        support: "Any real value in an interval",
+        probabilityRule: "Use a probability density function. Exact single points have probability 0; intervals carry probability.",
+        statisticalLearning:
+            "Statistical learning often posits a parametric form such as Gaussian, exponential, or gamma, then focuses on estimating parameters, confidence intervals, and model assumptions.",
+        machineLearning:
+            "Machine learning often frames the problem as regression or density estimation, prioritizing predictive error and flexible function fitting even when the noise model is only approximate.",
+        chartTitle: "Normal example: probability comes from area under a density",
+    },
+    mixed: {
+        title: "Mixed distribution",
+        example: "Zero-inflated spending with many zero purchases and positive spend when a purchase happens",
+        support: "A discrete spike plus a continuous range",
+        probabilityRule: "Use both a point mass and a density. For example, P(X=0) can be positive while X>0 follows a continuous density.",
+        statisticalLearning:
+            "Statistical learning explicitly separates the data-generating parts, using hurdle, zero-inflated, or two-part models so each component keeps a clear probabilistic meaning.",
+        machineLearning:
+            "Machine learning often handles this with staged pipelines: first predict whether the event happens, then predict magnitude conditional on happening, with emphasis on calibrated prediction and scale.",
+        chartTitle: "Zero-inflated example: a spike and a smooth density coexist",
+    },
+};
+
+const learningDatasets = {
+    "churn-trial": {
+        label: "Customer churn vs blood-pressure trial",
+        classification: {
+            title: "Classification dataset",
+            subtitle: "Telecom churn records",
+            description:
+                "Each row contains customer tenure, support tickets, monthly spend, and a churn label. The objective is to predict who will leave next month.",
+            points: [
+                { x: 1.2, y: 7.8, label: 1 },
+                { x: 1.9, y: 7.1, label: 1 },
+                { x: 2.5, y: 6.4, label: 1 },
+                { x: 3.2, y: 5.9, label: 1 },
+                { x: 4.2, y: 5.0, label: 1 },
+                { x: 6.0, y: 3.2, label: 0 },
+                { x: 6.8, y: 2.4, label: 0 },
+                { x: 7.5, y: 2.0, label: 0 },
+                { x: 8.1, y: 1.6, label: 0 },
+                { x: 5.6, y: 3.8, label: 0 },
+            ],
+            xLabel: "Tenure (years)",
+            yLabel: "Monthly support tickets",
+        },
+        inference: {
+            title: "Inference dataset",
+            subtitle: "Blood-pressure randomized trial",
+            description:
+                "Each row contains treatment assignment, baseline blood pressure, and outcome after eight weeks. The objective is to estimate the treatment effect and its uncertainty.",
+            groups: [
+                { label: "Control", mean: 2.1, low: 0.9, high: 3.4 },
+                { label: "Treatment", mean: 6.4, low: 5.0, high: 7.6 },
+            ],
+            effect: "Estimated treatment effect: -4.3 mmHg with uncertainty interval.",
+            yLabel: "Mean reduction (mmHg)",
+        },
+    },
+    "spam-ab": {
+        label: "Spam filtering vs advertisement A/B test",
+        classification: {
+            title: "Classification dataset",
+            subtitle: "Email spam corpus",
+            description:
+                "Each message is turned into features such as suspicious-word count and sender reputation. The model predicts spam versus not spam.",
+            points: [
+                { x: 1.0, y: 8.0, label: 1 },
+                { x: 1.8, y: 7.2, label: 1 },
+                { x: 2.6, y: 6.6, label: 1 },
+                { x: 3.0, y: 5.7, label: 1 },
+                { x: 5.5, y: 3.1, label: 0 },
+                { x: 6.4, y: 2.6, label: 0 },
+                { x: 7.2, y: 2.1, label: 0 },
+                { x: 8.0, y: 1.3, label: 0 },
+                { x: 4.6, y: 4.1, label: 0 },
+                { x: 3.7, y: 5.0, label: 1 },
+            ],
+            xLabel: "Sender reputation score",
+            yLabel: "Suspicious phrase count",
+        },
+        inference: {
+            title: "Inference dataset",
+            subtitle: "Advertisement A/B experiment",
+            description:
+                "Users are randomly assigned to ad A or ad B. The analyst wants to estimate the uplift in click-through rate and determine whether the effect is credibly different from zero.",
+            groups: [
+                { label: "Ad A", mean: 3.2, low: 2.7, high: 3.7 },
+                { label: "Ad B", mean: 4.4, low: 3.9, high: 4.9 },
+            ],
+            effect: "Estimated uplift: +1.2 percentage points with an uncertainty interval.",
+            yLabel: "Click-through rate (%)",
+        },
+    },
+};
+
+const lessonNarratives = [
+    {
+        title: "Choose the variable type",
+        text: "Start by identifying whether probability lives on countable outcomes, over intervals, or in both places at once. That decision changes the math and the modeling choices.",
+    },
+    {
+        title: "See exact event probability",
+        text: "Before using large models, it helps to ground probability in a simple sample space. The die view shows how an event is just a subset of outcomes.",
+    },
+    {
+        title: "Build a repeated-trial distribution",
+        text: "Once the random experiment is specified, repeated trials produce a distribution over counts. The binomial chart makes mean, spread, and the most likely outcome visible.",
+    },
+    {
+        title: "Separate prediction from explanation",
+        text: "Classification focuses on accurate labels for future cases. Inference focuses on estimating effects and uncertainty from data collected under a design.",
+    },
+    {
+        title: "Watch frequency stabilize",
+        text: "The law of large numbers connects theory to data. Even noisy samples tend to settle around the underlying probability when the experiment is repeated enough times.",
+    },
+];
+
+const dieSvg = d3.select("#die-svg");
+const binomialSvg = d3.select("#binomial-svg");
+const simulationSvg = d3.select("#simulation-svg");
+const distributionSvg = d3.select("#distribution-svg");
+const learningSvg = d3.select("#learning-svg");
+const conceptSvg = d3.select("#concept-svg");
+
+const dieSummary = document.querySelector("#die-summary");
+const dieEventSelect = document.querySelector("#die-event");
+const distributionTypeSelect = document.querySelector("#distribution-type");
+const distributionSummary = document.querySelector("#distribution-summary");
+const learningComparison = document.querySelector("#learning-comparison");
+const parameterGroups = Array.from(document.querySelectorAll(".parameter-group"));
+const poissonRateInput = document.querySelector("#poisson-rate");
+const poissonRateValue = document.querySelector("#poisson-rate-value");
+const normalMeanInput = document.querySelector("#normal-mean");
+const normalMeanValue = document.querySelector("#normal-mean-value");
+const normalStdInput = document.querySelector("#normal-std");
+const normalStdValue = document.querySelector("#normal-std-value");
+const zeroMassInput = document.querySelector("#zero-mass");
+const zeroMassValue = document.querySelector("#zero-mass-value");
+const positiveMeanInput = document.querySelector("#positive-mean");
+const positiveMeanValue = document.querySelector("#positive-mean-value");
+const learningDatasetSelect = document.querySelector("#learning-dataset");
+const taskComparison = document.querySelector("#task-comparison");
+const learningSummary = document.querySelector("#learning-summary");
+
+const lessonNarration = document.querySelector("#lesson-narration");
+const lessonStepLabel = document.querySelector("#lesson-step-label");
+const lessonProgressFill = document.querySelector("#lesson-progress-fill");
+const lessonPrevButton = document.querySelector("#lesson-prev");
+const lessonNextButton = document.querySelector("#lesson-next");
+const lessonSections = Array.from(document.querySelectorAll(".module-step"));
+const conceptTimeInput = document.querySelector("#concept-time");
+const conceptTimeValue = document.querySelector("#concept-time-value");
+const conceptLiveSummary = document.querySelector("#concept-live-summary");
+
+const trialCountInput = document.querySelector("#trial-count");
+const successProbabilityInput = document.querySelector("#success-probability");
+const trialCountValue = document.querySelector("#trial-count-value");
+const successProbabilityValue = document.querySelector("#success-probability-value");
+const binomialStats = document.querySelector("#binomial-stats");
+
+const simulationProbabilityInput = document.querySelector("#simulation-probability");
+const simulationProbabilityValue = document.querySelector("#simulation-probability-value");
+const simulationSummary = document.querySelector("#simulation-summary");
+const resetButton = document.querySelector("#reset-simulation");
+const addTrialButtons = Array.from(document.querySelectorAll("[data-add-trials]"));
+
+let simulationTrials = [];
+let currentLessonStep = 0;
+
+function combination(total, chosen) {
+    if (chosen < 0 || chosen > total) {
+        return 0;
+    }
+
+    let result = 1;
+    const effectiveChosen = Math.min(chosen, total - chosen);
+
+    for (let index = 1; index <= effectiveChosen; index += 1) {
+        result = (result * (total - effectiveChosen + index)) / index;
+    }
+
+    return result;
+}
+
+function binomialProbability(trials, successes, probability) {
+    return (
+        combination(trials, successes) *
+        Math.pow(probability, successes) *
+        Math.pow(1 - probability, trials - successes)
+    );
+}
+
+function poissonProbability(k, lambda) {
+    let factorial = 1;
+
+    for (let index = 2; index <= k; index += 1) {
+        factorial *= index;
+    }
+
+    return (Math.exp(-lambda) * Math.pow(lambda, k)) / factorial;
+}
+
+function normalDensity(x, mean, standardDeviation) {
+    const coefficient = 1 / (standardDeviation * Math.sqrt(2 * Math.PI));
+    const exponent = -Math.pow(x - mean, 2) / (2 * Math.pow(standardDeviation, 2));
+
+    return coefficient * Math.exp(exponent);
+}
+
+function gammaLikeDensity(x) {
+    if (x <= 0) {
+        return 0;
+    }
+
+    return 0.9 * x * Math.exp(-1.35 * x);
+}
+
+function exponentialDensity(x, mean) {
+    if (x < 0) {
+        return 0;
+    }
+
+    return (1 / mean) * Math.exp(-x / mean);
+}
+
+function logarithmBase(value, base) {
+    return Math.log(value) / Math.log(base);
+}
+
+function updateConceptVisualization() {
+    const initialValue = 100;
+    const base = 2;
+    const maxTime = 5;
+    const time = Number(conceptTimeInput.value);
+    const amount = initialValue * Math.pow(base, time);
+    const derivative = Math.log(base) * amount;
+    const nextAmount = initialValue * Math.pow(base, time + 1);
+    const averageNextHourChange = nextAmount - amount;
+    const width = 860;
+    const height = 430;
+    const margin = { top: 54, right: 24, bottom: 54, left: 60 };
+    const innerWidth = width - margin.left - margin.right;
+    const innerHeight = height - margin.top - margin.bottom;
+    const panelGap = 44;
+    const panelWidth = (innerWidth - panelGap) / 2;
+    const leftX = d3.scaleLinear().domain([0, maxTime]).range([0, panelWidth]);
+    const leftY = d3
+        .scaleLinear()
+        .domain([0, initialValue * Math.pow(base, maxTime) * 1.06])
+        .range([innerHeight, 0]);
+    const rightX = d3
+        .scaleLinear()
+        .domain([initialValue, initialValue * Math.pow(base, maxTime)])
+        .range([0, panelWidth]);
+    const rightY = d3.scaleLinear().domain([0, maxTime]).range([innerHeight, 0]);
+    const exponentialData = d3.range(0, maxTime + 0.001, 0.05).map((currentTime) => ({
+        time: currentTime,
+        amount: initialValue * Math.pow(base, currentTime),
+    }));
+    const inverseData = d3.range(initialValue, initialValue * Math.pow(base, maxTime) + 1, 20).map((currentAmount) => ({
+        amount: currentAmount,
+        time: logarithmBase(currentAmount / initialValue, base),
+    }));
+    const line = d3
+        .line()
+        .x((datum) => leftX(datum.time))
+        .y((datum) => leftY(datum.amount))
+        .curve(d3.curveMonotoneX);
+    const inverseLine = d3
+        .line()
+        .x((datum) => rightX(datum.amount))
+        .y((datum) => rightY(datum.time))
+        .curve(d3.curveMonotoneX);
+    const tangentDomainStart = Math.max(0, time - 0.9);
+    const tangentDomainEnd = Math.min(maxTime, time + 0.9);
+    const tangentData = [
+        {
+            time: tangentDomainStart,
+            amount: amount + derivative * (tangentDomainStart - time),
+        },
+        {
+            time: tangentDomainEnd,
+            amount: amount + derivative * (tangentDomainEnd - time),
+        },
+    ];
+
+    conceptTimeValue.textContent = time.toFixed(1);
+    conceptLiveSummary.innerHTML = `
+    <span class="metric-label">Current reading</span>
+    <strong>f(${time.toFixed(1)}) = ${amount.toFixed(1)}</strong>
+    <p><strong>Exponential model:</strong> f(t) = 100 · 2^t, so at t = ${time.toFixed(1)} the quantity is ${amount.toFixed(1)}.</p>
+    <p><strong>Base-2 log inverse:</strong> log₂(f(t)/100) = t, so log₂(${amount.toFixed(1)}/100) = ${time.toFixed(1)}.</p>
+    <p><strong>Derivative with log:</strong> f'(${time.toFixed(1)}) = log(2) · ${amount.toFixed(1)} = ${derivative.toFixed(1)} units per hour.</p>
+    <p><strong>Average change over the next hour:</strong> [f(${(time + 1).toFixed(1)}) - f(${time.toFixed(1)})] / 1 = ${averageNextHourChange.toFixed(1)} units per hour.</p>
+  `;
+
+    conceptSvg.attr("viewBox", `0 0 ${width} ${height}`);
+    conceptSvg.selectAll("*").remove();
+
+    conceptSvg
+        .append("text")
+        .attr("class", "chart-title")
+        .attr("x", margin.left)
+        .attr("y", 28)
+        .text("One quantity viewed as growth law, inverse log, and local slope");
+
+    const root = conceptSvg.append("g").attr("transform", `translate(${margin.left}, ${margin.top})`);
+    const leftPanel = root.append("g");
+    const rightPanel = root.append("g").attr("transform", `translate(${panelWidth + panelGap}, 0)`);
+
+    leftPanel
+        .append("text")
+        .attr("class", "panel-label")
+        .attr("x", 0)
+        .attr("y", -14)
+        .text("Exponential view: f(t) = 100 · 2^t");
+
+    rightPanel
+        .append("text")
+        .attr("class", "panel-label")
+        .attr("x", 0)
+        .attr("y", -14)
+        .text("Inverse view using base-2 log: t = log₂(f(t)/100)");
+
+    leftPanel
+        .append("g")
+        .attr("class", "axis")
+        .attr("transform", `translate(0, ${innerHeight})`)
+        .call(d3.axisBottom(leftX).ticks(6));
+
+    leftPanel
+        .append("g")
+        .attr("class", "axis")
+        .call(d3.axisLeft(leftY).ticks(5).tickFormat(d3.format("~s")));
+
+    leftPanel
+        .append("text")
+        .attr("class", "axis-label")
+        .attr("x", panelWidth / 2)
+        .attr("y", innerHeight + 42)
+        .attr("text-anchor", "middle")
+        .text("Time t (hours)");
+
+    leftPanel
+        .append("text")
+        .attr("class", "axis-label")
+        .attr("transform", "rotate(-90)")
+        .attr("x", -innerHeight / 2)
+        .attr("y", -42)
+        .attr("text-anchor", "middle")
+        .text("Quantity f(t)");
+
+    leftPanel
+        .append("path")
+        .datum(exponentialData)
+        .attr("fill", "none")
+        .attr("stroke", palette.secondary)
+        .attr("stroke-width", 4)
+        .attr("d", line);
+
+    leftPanel
+        .append("line")
+        .attr("x1", leftX(time))
+        .attr("x2", leftX(time))
+        .attr("y1", leftY(0))
+        .attr("y2", leftY(amount))
+        .attr("stroke", palette.line)
+        .attr("stroke-dasharray", "5 5");
+
+    leftPanel
+        .append("line")
+        .attr("x1", 0)
+        .attr("x2", leftX(time))
+        .attr("y1", leftY(amount))
+        .attr("y2", leftY(amount))
+        .attr("stroke", palette.line)
+        .attr("stroke-dasharray", "5 5");
+
+    leftPanel
+        .append("line")
+        .attr("x1", leftX(tangentData[0].time))
+        .attr("x2", leftX(tangentData[1].time))
+        .attr("y1", leftY(tangentData[0].amount))
+        .attr("y2", leftY(tangentData[1].amount))
+        .attr("stroke", palette.accent)
+        .attr("stroke-width", 3)
+        .attr("stroke-dasharray", "8 6");
+
+    leftPanel
+        .append("circle")
+        .attr("cx", leftX(time))
+        .attr("cy", leftY(amount))
+        .attr("r", 8)
+        .attr("fill", palette.accent);
+
+    leftPanel
+        .append("text")
+        .attr("class", "annotation")
+        .attr("x", Math.min(leftX(time) + 10, panelWidth - 100))
+        .attr("y", Math.max(leftY(amount) - 14, 18))
+        .text(`Point: (${time.toFixed(1)}, ${amount.toFixed(0)})`);
+
+    leftPanel
+        .append("text")
+        .attr("class", "annotation")
+        .attr("x", Math.max(leftX(time) - 110, 12))
+        .attr("y", Math.min(leftY(amount + derivative * 0.55), innerHeight - 14))
+        .text(`Slope = f'(t) = ${derivative.toFixed(1)}`);
+
+    rightPanel
+        .append("g")
+        .attr("class", "axis")
+        .attr("transform", `translate(0, ${innerHeight})`)
+        .call(d3.axisBottom(rightX).ticks(5).tickFormat(d3.format("~s")));
+
+    rightPanel
+        .append("g")
+        .attr("class", "axis")
+        .call(d3.axisLeft(rightY).ticks(6));
+
+    rightPanel
+        .append("text")
+        .attr("class", "axis-label")
+        .attr("x", panelWidth / 2)
+        .attr("y", innerHeight + 42)
+        .attr("text-anchor", "middle")
+        .text("Observed quantity f(t)");
+
+    rightPanel
+        .append("text")
+        .attr("class", "axis-label")
+        .attr("transform", "rotate(-90)")
+        .attr("x", -innerHeight / 2)
+        .attr("y", -42)
+        .attr("text-anchor", "middle")
+        .text("Recovered time t");
+
+    rightPanel
+        .append("path")
+        .datum(inverseData)
+        .attr("fill", "none")
+        .attr("stroke", palette.secondarySoft)
+        .attr("stroke-width", 4)
+        .attr("d", inverseLine);
+
+    rightPanel
+        .append("line")
+        .attr("x1", rightX(amount))
+        .attr("x2", rightX(amount))
+        .attr("y1", rightY(0))
+        .attr("y2", rightY(time))
+        .attr("stroke", palette.line)
+        .attr("stroke-dasharray", "5 5");
+
+    rightPanel
+        .append("line")
+        .attr("x1", 0)
+        .attr("x2", rightX(amount))
+        .attr("y1", rightY(time))
+        .attr("y2", rightY(time))
+        .attr("stroke", palette.line)
+        .attr("stroke-dasharray", "5 5");
+
+    rightPanel
+        .append("circle")
+        .attr("cx", rightX(amount))
+        .attr("cy", rightY(time))
+        .attr("r", 8)
+        .attr("fill", palette.accent);
+
+    rightPanel
+        .append("text")
+        .attr("class", "annotation")
+        .attr("x", Math.min(rightX(amount) + 10, panelWidth - 120))
+        .attr("y", Math.max(rightY(time) - 14, 18))
+        .text(`log₂(${amount.toFixed(0)}/100) = ${time.toFixed(1)}`);
+
+    root
+        .append("text")
+        .attr("class", "annotation")
+        .attr("x", panelWidth + 12)
+        .attr("y", 24)
+        .attr("text-anchor", "middle")
+        .style("font-size", "22px")
+        .text("⇄");
+}
+
+function updateParameterVisibility() {
+    parameterGroups.forEach((group) => {
+        group.hidden = group.dataset.family !== distributionTypeSelect.value;
+    });
+}
+
+function updateDistributionComparison() {
+    const distributionType = distributionTypes[distributionTypeSelect.value];
+    const width = 820;
+    const height = 420;
+    const margin = { top: 54, right: 24, bottom: 56, left: 58 };
+    const innerWidth = width - margin.left - margin.right;
+    const innerHeight = height - margin.top - margin.bottom;
+
+    updateParameterVisibility();
+
+    learningComparison.innerHTML = `
+    <div class="comparison-card">
+      <span class="metric-label">Machine learning</span>
+      <strong>Prediction first</strong>
+      <p>${distributionType.machineLearning}</p>
+    </div>
+    <div class="comparison-card">
+      <span class="metric-label">Statistical learning</span>
+      <strong>Model first</strong>
+      <p>${distributionType.statisticalLearning}</p>
+    </div>
+  `;
+
+    distributionSvg.attr("viewBox", `0 0 ${width} ${height}`);
+    distributionSvg.selectAll("*").remove();
+
+    distributionSvg
+        .append("text")
+        .attr("class", "chart-title")
+        .attr("x", margin.left)
+        .attr("y", 28)
+        .text(distributionType.chartTitle);
+
+    const chart = distributionSvg.append("g").attr("transform", `translate(${margin.left}, ${margin.top})`);
+    const xScale = d3.scaleLinear().domain([0, 10]).range([0, innerWidth]);
+    const yScale = d3.scaleLinear().domain([0, 1]).range([innerHeight, 0]);
+
+    chart
+        .append("g")
+        .attr("class", "axis")
+        .attr("transform", `translate(0, ${innerHeight})`)
+        .call(d3.axisBottom(xScale).ticks(6));
+
+    chart
+        .append("g")
+        .attr("class", "axis")
+        .call(d3.axisLeft(yScale).ticks(5).tickFormat(d3.format(".1f")));
+
+    chart
+        .append("text")
+        .attr("class", "axis-label")
+        .attr("x", innerWidth / 2)
+        .attr("y", innerHeight + 42)
+        .attr("text-anchor", "middle")
+        .text("Possible values of X");
+
+    chart
+        .append("text")
+        .attr("class", "axis-label")
+        .attr("transform", "rotate(-90)")
+        .attr("x", -innerHeight / 2)
+        .attr("y", -40)
+        .attr("text-anchor", "middle")
+        .text("Probability mass / density");
+
+    if (distributionTypeSelect.value === "discrete") {
+        const lambda = Number(poissonRateInput.value);
+        const points = d3.range(0, 11).map((x) => ({ x, y: poissonProbability(x, lambda) }));
+
+        poissonRateValue.textContent = lambda.toFixed(1);
+        distributionSummary.innerHTML = `
+    <span class="metric-label">Definition</span>
+    <strong>${distributionType.title}</strong>
+    <p><strong>Support:</strong> ${distributionType.support}</p>
+    <p><strong>Example:</strong> ${distributionType.example}</p>
+    <p><strong>Poisson parameter:</strong> λ = ${lambda.toFixed(1)}, so both the mean and variance are ${lambda.toFixed(1)}.</p>
+    <p>${distributionType.probabilityRule}</p>
+  `;
+
+        chart
+            .selectAll("line.stem")
+            .data(points)
+            .join("line")
+            .attr("x1", (datum) => xScale(datum.x))
+            .attr("x2", (datum) => xScale(datum.x))
+            .attr("y1", yScale(0))
+            .attr("y2", (datum) => yScale(datum.y))
+            .attr("stroke", palette.secondary)
+            .attr("stroke-width", 4)
+            .attr("stroke-linecap", "round");
+
+        chart
+            .selectAll("circle.mass")
+            .data(points)
+            .join("circle")
+            .attr("cx", (datum) => xScale(datum.x))
+            .attr("cy", (datum) => yScale(datum.y))
+            .attr("r", 8)
+            .attr("fill", palette.accent);
+
+        chart
+            .append("text")
+            .attr("class", "annotation")
+            .attr("x", xScale(6.2))
+            .attr("y", yScale(0.82))
+            .text("Each integer count gets its own mass P(X = k).");
+    }
+
+    if (distributionTypeSelect.value === "continuous") {
+        const mean = Number(normalMeanInput.value);
+        const standardDeviation = Number(normalStdInput.value);
+        const curveData = d3.range(0, 10.01, 0.1).map((x) => ({
+            x,
+            y: normalDensity(x, mean, standardDeviation) * 2.2,
+        }));
+        const lowerBound = Math.max(0, mean - standardDeviation);
+        const upperBound = Math.min(10, mean + standardDeviation);
+        const shadedData = curveData.filter((datum) => datum.x >= lowerBound && datum.x <= upperBound);
+        const line = d3
+            .line()
+            .x((datum) => xScale(datum.x))
+            .y((datum) => yScale(datum.y))
+            .curve(d3.curveMonotoneX);
+        const area = d3
+            .area()
+            .x((datum) => xScale(datum.x))
+            .y0(yScale(0))
+            .y1((datum) => yScale(datum.y))
+            .curve(d3.curveMonotoneX);
+
+        normalMeanValue.textContent = mean.toFixed(1);
+        normalStdValue.textContent = standardDeviation.toFixed(1);
+        distributionSummary.innerHTML = `
+    <span class="metric-label">Definition</span>
+    <strong>${distributionType.title}</strong>
+    <p><strong>Support:</strong> ${distributionType.support}</p>
+    <p><strong>Example:</strong> ${distributionType.example}</p>
+    <p><strong>Normal parameters:</strong> μ = ${mean.toFixed(1)}, σ = ${standardDeviation.toFixed(1)}. The shaded interval shows roughly one standard deviation around the mean.</p>
+    <p>${distributionType.probabilityRule}</p>
+  `;
+
+        chart
+            .append("path")
+            .datum(shadedData)
+            .attr("fill", palette.accentSoft)
+            .attr("opacity", 0.8)
+            .attr("d", area);
+
+        chart
+            .append("path")
+            .datum(curveData)
+            .attr("fill", "none")
+            .attr("stroke", palette.secondary)
+            .attr("stroke-width", 4)
+            .attr("d", line);
+
+        chart
+            .append("text")
+            .attr("class", "annotation")
+            .attr("x", xScale(Math.min(mean + 0.2, 7.5)))
+            .attr("y", yScale(0.83))
+            .text("Probability lives in the shaded area, not at a single point.");
+    }
+
+    if (distributionTypeSelect.value === "mixed") {
+        const spikeMass = Number(zeroMassInput.value);
+        const positiveMean = Number(positiveMeanInput.value);
+        const densityData = d3.range(0, 10.01, 0.1).map((x) => ({
+            x,
+            y: x <= 0 ? 0 : (1 - spikeMass) * exponentialDensity(x, positiveMean) * 3.2,
+        }));
+        const line = d3
+            .line()
+            .x((datum) => xScale(datum.x))
+            .y((datum) => yScale(datum.y))
+            .curve(d3.curveMonotoneX);
+
+        zeroMassValue.textContent = spikeMass.toFixed(2);
+        positiveMeanValue.textContent = positiveMean.toFixed(1);
+        distributionSummary.innerHTML = `
+    <span class="metric-label">Definition</span>
+    <strong>${distributionType.title}</strong>
+    <p><strong>Support:</strong> ${distributionType.support}</p>
+    <p><strong>Example:</strong> ${distributionType.example}</p>
+    <p><strong>Zero-inflated parameters:</strong> P(X=0) = ${spikeMass.toFixed(2)}, and the positive outcomes follow an exponential-like density with mean ${positiveMean.toFixed(1)}.</p>
+    <p>${distributionType.probabilityRule}</p>
+  `;
+
+        chart
+            .append("line")
+            .attr("x1", xScale(0))
+            .attr("x2", xScale(0))
+            .attr("y1", yScale(0))
+            .attr("y2", yScale(spikeMass))
+            .attr("stroke", palette.accent)
+            .attr("stroke-width", 6)
+            .attr("stroke-linecap", "round");
+
+        chart
+            .append("circle")
+            .attr("cx", xScale(0))
+            .attr("cy", yScale(spikeMass))
+            .attr("r", 9)
+            .attr("fill", palette.accent);
+
+        chart
+            .append("path")
+            .datum(densityData)
+            .attr("fill", "none")
+            .attr("stroke", palette.secondary)
+            .attr("stroke-width", 4)
+            .attr("d", line);
+
+        chart
+            .append("text")
+            .attr("class", "annotation")
+            .attr("x", xScale(0.25))
+            .attr("y", yScale(0.42))
+            .text("Exact zero has positive probability");
+
+        chart
+            .append("text")
+            .attr("class", "annotation")
+            .attr("x", xScale(4.0))
+            .attr("y", yScale(0.68))
+            .text("Positive values use a continuous density");
+    }
+
+    const legend = chart.append("g").attr("transform", `translate(${innerWidth - 205}, 10)`);
+
+    legend
+        .append("rect")
+        .attr("width", 195)
+        .attr("height", 64)
+        .attr("rx", 14)
+        .attr("fill", "rgba(255,255,255,0.72)")
+        .attr("stroke", palette.line);
+
+    legend
+        .append("circle")
+        .attr("cx", 18)
+        .attr("cy", 22)
+        .attr("r", 6)
+        .attr("fill", palette.accent);
+
+    legend
+        .append("text")
+        .attr("class", "legend-chip")
+        .attr("x", 32)
+        .attr("y", 26)
+        .text("Point mass: exact value can carry probability");
+
+    legend
+        .append("line")
+        .attr("x1", 12)
+        .attr("x2", 24)
+        .attr("y1", 46)
+        .attr("y2", 46)
+        .attr("stroke", palette.secondary)
+        .attr("stroke-width", 4)
+        .attr("stroke-linecap", "round");
+
+    legend
+        .append("text")
+        .attr("class", "legend-chip")
+        .attr("x", 32)
+        .attr("y", 50)
+        .text("Density: probability comes from area");
+}
+
+function updateLearningComparison() {
+    const dataset = learningDatasets[learningDatasetSelect.value];
+    const width = 820;
+    const height = 420;
+    const margin = { top: 54, right: 24, bottom: 48, left: 48 };
+    const innerWidth = width - margin.left - margin.right;
+    const innerHeight = height - margin.top - margin.bottom;
+    const panelWidth = (innerWidth - 40) / 2;
+
+    taskComparison.innerHTML = `
+    <div class="comparison-card">
+      <span class="metric-label">Classification dataset</span>
+      <strong>${dataset.classification.subtitle}</strong>
+      <p>${dataset.classification.description}</p>
+    </div>
+    <div class="comparison-card">
+      <span class="metric-label">Inference dataset</span>
+      <strong>${dataset.inference.subtitle}</strong>
+      <p>${dataset.inference.description}</p>
+    </div>
+  `;
+
+    learningSummary.innerHTML = `
+    <span class="metric-label">Goal contrast</span>
+    <strong>${dataset.label}</strong>
+    <p><strong>Classification:</strong> optimize predictive accuracy for future labels.</p>
+    <p><strong>Inference:</strong> estimate an effect size and communicate uncertainty.</p>
+    <p>${dataset.inference.effect}</p>
+  `;
+
+    learningSvg.attr("viewBox", `0 0 ${width} ${height}`);
+    learningSvg.selectAll("*").remove();
+
+    learningSvg
+        .append("text")
+        .attr("class", "chart-title")
+        .attr("x", margin.left)
+        .attr("y", 28)
+        .text("The same probability tools support different objectives");
+
+    const root = learningSvg.append("g").attr("transform", `translate(${margin.left}, ${margin.top})`);
+    const leftPanel = root.append("g");
+    const rightPanel = root.append("g").attr("transform", `translate(${panelWidth + 40}, 0)`);
+
+    leftPanel
+        .append("text")
+        .attr("class", "panel-label")
+        .attr("x", 0)
+        .attr("y", -12)
+        .text("Classification: predict the label");
+
+    rightPanel
+        .append("text")
+        .attr("class", "panel-label")
+        .attr("x", 0)
+        .attr("y", -12)
+        .text("Inference: estimate the effect");
+
+    const classX = d3.scaleLinear().domain([0, 10]).range([0, panelWidth]);
+    const classY = d3.scaleLinear().domain([0, 10]).range([innerHeight, 0]);
+
+    leftPanel
+        .append("g")
+        .attr("class", "axis")
+        .attr("transform", `translate(0, ${innerHeight})`)
+        .call(d3.axisBottom(classX).ticks(5));
+
+    leftPanel
+        .append("g")
+        .attr("class", "axis")
+        .call(d3.axisLeft(classY).ticks(5));
+
+    leftPanel
+        .append("text")
+        .attr("class", "axis-label")
+        .attr("x", panelWidth / 2)
+        .attr("y", innerHeight + 40)
+        .attr("text-anchor", "middle")
+        .text(dataset.classification.xLabel);
+
+    leftPanel
+        .append("text")
+        .attr("class", "axis-label")
+        .attr("transform", "rotate(-90)")
+        .attr("x", -innerHeight / 2)
+        .attr("y", -36)
+        .attr("text-anchor", "middle")
+        .text(dataset.classification.yLabel);
+
+    leftPanel
+        .append("line")
+        .attr("x1", classX(2.2))
+        .attr("y1", classY(7.9))
+        .attr("x2", classX(8.0))
+        .attr("y2", classY(2.1))
+        .attr("stroke", palette.line)
+        .attr("stroke-dasharray", "6 6");
+
+    leftPanel
+        .selectAll("circle")
+        .data(dataset.classification.points)
+        .join("circle")
+        .attr("cx", (datum) => classX(datum.x))
+        .attr("cy", (datum) => classY(datum.y))
+        .attr("r", 7)
+        .attr("fill", (datum) => (datum.label ? palette.accent : palette.secondary));
+
+    leftPanel
+        .append("text")
+        .attr("class", "annotation")
+        .attr("x", classX(5.6))
+        .attr("y", classY(8.8))
+        .text("Decision boundary separates likely labels.");
+
+    const infX = d3.scaleBand().domain(dataset.inference.groups.map((group) => group.label)).range([0, panelWidth]).padding(0.45);
+    const infY = d3.scaleLinear().domain([0, d3.max(dataset.inference.groups, (group) => group.high) + 1]).range([innerHeight, 0]);
+
+    rightPanel
+        .append("g")
+        .attr("class", "axis")
+        .attr("transform", `translate(0, ${innerHeight})`)
+        .call(d3.axisBottom(infX));
+
+    rightPanel
+        .append("g")
+        .attr("class", "axis")
+        .call(d3.axisLeft(infY).ticks(5));
+
+    rightPanel
+        .append("text")
+        .attr("class", "axis-label")
+        .attr("transform", "rotate(-90)")
+        .attr("x", -innerHeight / 2)
+        .attr("y", -36)
+        .attr("text-anchor", "middle")
+        .text(dataset.inference.yLabel);
+
+    const groups = rightPanel
+        .selectAll("g.effect-group")
+        .data(dataset.inference.groups)
+        .join("g")
+        .attr("class", "effect-group")
+        .attr("transform", (group) => `translate(${infX(group.label)}, 0)`);
+
+    groups
+        .append("line")
+        .attr("x1", infX.bandwidth() / 2)
+        .attr("x2", infX.bandwidth() / 2)
+        .attr("y1", (group) => infY(group.low))
+        .attr("y2", (group) => infY(group.high))
+        .attr("stroke", palette.secondary)
+        .attr("stroke-width", 4)
+        .attr("stroke-linecap", "round");
+
+    groups
+        .append("circle")
+        .attr("cx", infX.bandwidth() / 2)
+        .attr("cy", (group) => infY(group.mean))
+        .attr("r", 8)
+        .attr("fill", palette.accent);
+
+    groups
+        .append("line")
+        .attr("x1", infX.bandwidth() / 2 - 12)
+        .attr("x2", infX.bandwidth() / 2 + 12)
+        .attr("y1", (group) => infY(group.low))
+        .attr("y2", (group) => infY(group.low))
+        .attr("stroke", palette.secondary)
+        .attr("stroke-width", 3);
+
+    groups
+        .append("line")
+        .attr("x1", infX.bandwidth() / 2 - 12)
+        .attr("x2", infX.bandwidth() / 2 + 12)
+        .attr("y1", (group) => infY(group.high))
+        .attr("y2", (group) => infY(group.high))
+        .attr("stroke", palette.secondary)
+        .attr("stroke-width", 3);
+
+    rightPanel
+        .append("text")
+        .attr("class", "annotation")
+        .attr("x", panelWidth * 0.2)
+        .attr("y", infY(d3.max(dataset.inference.groups, (group) => group.high)) - 18)
+        .text("Points show estimates; vertical bars show uncertainty.");
+}
+
+function updateDieVisualization() {
+    const selectedEvent = dieEvents[dieEventSelect.value];
+    const data = d3.range(1, 7).map((value) => ({
+        value,
+        isHighlighted: selectedEvent.outcomes.includes(value),
+    }));
+    const width = 700;
+    const height = 220;
+    const margin = { top: 28, right: 18, bottom: 18, left: 18 };
+    const cellSize = 90;
+    const gap = 18;
+
+    dieSvg.attr("viewBox", `0 0 ${width} ${height}`);
+    dieSvg.selectAll("*").remove();
+
+    dieSvg
+        .append("text")
+        .attr("class", "chart-title")
+        .attr("x", margin.left)
+        .attr("y", 24)
+        .text("Sample space for one die roll");
+
+    const group = dieSvg.append("g").attr("transform", `translate(${margin.left}, ${margin.top + 18})`);
+
+    const cells = group
+        .selectAll("g")
+        .data(data)
+        .join("g")
+        .attr("transform", (_, index) => `translate(${index * (cellSize + gap)}, 0)`);
+
+    cells
+        .append("rect")
+        .attr("class", "die-cell")
+        .attr("width", cellSize)
+        .attr("height", cellSize)
+        .attr("rx", 22)
+        .attr("fill", (datum) => (datum.isHighlighted ? palette.accentSoft : "rgba(255,255,255,0.72)"))
+        .attr("stroke", (datum) => (datum.isHighlighted ? palette.accent : palette.line))
+        .attr("stroke-width", (datum) => (datum.isHighlighted ? 2.5 : 1.2));
+
+    cells
+        .append("text")
+        .attr("class", "die-label")
+        .attr("x", cellSize / 2)
+        .attr("y", cellSize / 2 + 13)
+        .attr("text-anchor", "middle")
+        .text((datum) => datum.value);
+
+    cells
+        .append("text")
+        .attr("class", "annotation")
+        .attr("x", cellSize / 2)
+        .attr("y", cellSize + 24)
+        .attr("text-anchor", "middle")
+        .style("font-size", "12px")
+        .text((datum) => (datum.isHighlighted ? "event" : "not in event"));
+
+    const favorable = selectedEvent.outcomes.length;
+    const probability = favorable / 6;
+
+    dieSummary.innerHTML = `
+    <span class="metric-label">Selected event</span>
+    <strong>P(${selectedEvent.label}) = ${favorable}/6 = ${probability.toFixed(2)}</strong>
+    <p>${selectedEvent.description}</p>
+  `;
+}
+
+function updateBinomialChart() {
+    const trials = Number(trialCountInput.value);
+    const probability = Number(successProbabilityInput.value);
+    const dataset = d3.range(0, trials + 1).map((successes) => ({
+        successes,
+        probability: binomialProbability(trials, successes, probability),
+    }));
+
+    const width = 820;
+    const height = 420;
+    const margin = { top: 54, right: 26, bottom: 52, left: 56 };
+    const innerWidth = width - margin.left - margin.right;
+    const innerHeight = height - margin.top - margin.bottom;
+    const expectedValue = trials * probability;
+    const variance = trials * probability * (1 - probability);
+    const mostLikely = dataset.reduce((best, current) =>
+        current.probability > best.probability ? current : best,
+    );
+
+    trialCountValue.textContent = String(trials);
+    successProbabilityValue.textContent = probability.toFixed(2);
+
+    binomialStats.innerHTML = `
+    <div><span class="metric-label">Expected value</span><strong>${expectedValue.toFixed(2)}</strong></div>
+    <div><span class="metric-label">Variance</span><strong>${variance.toFixed(2)}</strong></div>
+    <div><span class="metric-label">Most likely count</span><strong>${mostLikely.successes}</strong></div>
+  `;
+
+    binomialSvg.attr("viewBox", `0 0 ${width} ${height}`);
+    binomialSvg.selectAll("*").remove();
+
+    const chart = binomialSvg.append("g").attr("transform", `translate(${margin.left}, ${margin.top})`);
+    const xScale = d3
+        .scaleBand()
+        .domain(dataset.map((datum) => datum.successes))
+        .range([0, innerWidth])
+        .padding(0.18);
+    const yScale = d3
+        .scaleLinear()
+        .domain([0, d3.max(dataset, (datum) => datum.probability) || 0])
+        .nice()
+        .range([innerHeight, 0]);
+
+    binomialSvg
+        .append("text")
+        .attr("class", "chart-title")
+        .attr("x", margin.left)
+        .attr("y", 28)
+        .text("Probability mass across possible success counts");
+
+    chart
+        .append("g")
+        .attr("class", "axis")
+        .attr("transform", `translate(0, ${innerHeight})`)
+        .call(d3.axisBottom(xScale));
+
+    chart.append("g").attr("class", "axis").call(d3.axisLeft(yScale).ticks(6).tickFormat(d3.format(".2f")));
+
+    chart
+        .append("text")
+        .attr("class", "axis-label")
+        .attr("x", innerWidth / 2)
+        .attr("y", innerHeight + 42)
+        .attr("text-anchor", "middle")
+        .text("Number of successes k");
+
+    chart
+        .append("text")
+        .attr("class", "axis-label")
+        .attr("transform", "rotate(-90)")
+        .attr("x", -innerHeight / 2)
+        .attr("y", -40)
+        .attr("text-anchor", "middle")
+        .text("P(X = k)");
+
+    chart
+        .selectAll("rect")
+        .data(dataset)
+        .join("rect")
+        .attr("x", (datum) => xScale(datum.successes) || 0)
+        .attr("y", (datum) => yScale(datum.probability))
+        .attr("width", xScale.bandwidth())
+        .attr("height", (datum) => innerHeight - yScale(datum.probability))
+        .attr("rx", 10)
+        .attr("fill", (datum) =>
+            datum.successes === mostLikely.successes ? palette.accent : palette.secondary,
+        )
+        .append("title")
+        .text((datum) => `P(X=${datum.successes}) = ${datum.probability.toFixed(4)}`);
+
+    chart
+        .append("line")
+        .attr("x1", xScale(dataset[0].successes) || 0)
+        .attr("x2", xScale(dataset[dataset.length - 1].successes) || innerWidth)
+        .attr("y1", yScale(0))
+        .attr("y2", yScale(0))
+        .attr("stroke", palette.line);
+
+    const expectationX = (xScale(Math.round(expectedValue)) || 0) + xScale.bandwidth() / 2;
+
+    chart
+        .append("line")
+        .attr("x1", expectationX)
+        .attr("x2", expectationX)
+        .attr("y1", 0)
+        .attr("y2", innerHeight)
+        .attr("stroke", palette.accent)
+        .attr("stroke-dasharray", "5 5")
+        .attr("opacity", 0.8);
+
+    chart
+        .append("text")
+        .attr("class", "annotation")
+        .attr("x", Math.min(expectationX + 8, innerWidth - 84))
+        .attr("y", 16)
+        .style("font-size", "12px")
+        .text(`mean np = ${expectedValue.toFixed(2)}`);
+}
+
+function buildRunningProportions(trials) {
+    let successCount = 0;
+
+    return trials.map((outcome, index) => {
+        successCount += outcome;
+
+        return {
+            trial: index + 1,
+            runningProportion: successCount / (index + 1),
+            cumulativeSuccesses: successCount,
+        };
+    });
+}
+
+function updateSimulationChart() {
+    const probability = Number(simulationProbabilityInput.value);
+    const series = buildRunningProportions(simulationTrials);
+    const width = 820;
+    const height = 420;
+    const margin = { top: 54, right: 26, bottom: 52, left: 56 };
+    const innerWidth = width - margin.left - margin.right;
+    const innerHeight = height - margin.top - margin.bottom;
+    const totalTrials = simulationTrials.length;
+    const totalSuccesses = simulationTrials.reduce((sum, current) => sum + current, 0);
+    const observedProbability = totalTrials === 0 ? 0 : totalSuccesses / totalTrials;
+
+    simulationProbabilityValue.textContent = probability.toFixed(2);
+    simulationSummary.innerHTML = `
+    <span class="metric-label">Simulation state</span>
+    <strong>${totalTrials} trials, ${totalSuccesses} successes, observed p̂ = ${observedProbability.toFixed(3)}</strong>
+    <p>The dashed line is the true probability. The solid line is the running proportion from the simulated outcomes.</p>
+  `;
+
+    simulationSvg.attr("viewBox", `0 0 ${width} ${height}`);
+    simulationSvg.selectAll("*").remove();
+
+    const chart = simulationSvg.append("g").attr("transform", `translate(${margin.left}, ${margin.top})`);
+    const xScale = d3.scaleLinear().domain([1, Math.max(totalTrials, 10)]).range([0, innerWidth]);
+    const yScale = d3.scaleLinear().domain([0, 1]).range([innerHeight, 0]);
+
+    simulationSvg
+        .append("text")
+        .attr("class", "chart-title")
+        .attr("x", margin.left)
+        .attr("y", 28)
+        .text("Running proportion from Bernoulli trials");
+
+    chart
+        .append("g")
+        .attr("class", "axis")
+        .attr("transform", `translate(0, ${innerHeight})`)
+        .call(d3.axisBottom(xScale).ticks(6).tickFormat(d3.format("d")));
+
+    chart
+        .append("g")
+        .attr("class", "axis")
+        .call(d3.axisLeft(yScale).ticks(5).tickFormat(d3.format(".1f")));
+
+    chart
+        .append("text")
+        .attr("class", "axis-label")
+        .attr("x", innerWidth / 2)
+        .attr("y", innerHeight + 42)
+        .attr("text-anchor", "middle")
+        .text("Trial number");
+
+    chart
+        .append("text")
+        .attr("class", "axis-label")
+        .attr("transform", "rotate(-90)")
+        .attr("x", -innerHeight / 2)
+        .attr("y", -40)
+        .attr("text-anchor", "middle")
+        .text("Running proportion");
+
+    chart
+        .append("line")
+        .attr("x1", 0)
+        .attr("x2", innerWidth)
+        .attr("y1", yScale(probability))
+        .attr("y2", yScale(probability))
+        .attr("stroke", palette.accent)
+        .attr("stroke-width", 2)
+        .attr("stroke-dasharray", "6 6");
+
+    chart
+        .append("text")
+        .attr("class", "annotation")
+        .attr("x", innerWidth - 92)
+        .attr("y", yScale(probability) - 10)
+        .style("font-size", "12px")
+        .text(`true p = ${probability.toFixed(2)}`);
+
+    if (series.length > 0) {
+        const line = d3
+            .line()
+            .x((datum) => xScale(datum.trial))
+            .y((datum) => yScale(datum.runningProportion))
+            .curve(d3.curveMonotoneX);
+
+        chart
+            .append("path")
+            .datum(series)
+            .attr("fill", "none")
+            .attr("stroke", palette.secondary)
+            .attr("stroke-width", 3)
+            .attr("d", line);
+
+        const latestPoint = series[series.length - 1];
+
+        chart
+            .append("circle")
+            .attr("cx", xScale(latestPoint.trial))
+            .attr("cy", yScale(latestPoint.runningProportion))
+            .attr("r", 5)
+            .attr("fill", palette.secondary);
+    } else {
+        chart
+            .append("text")
+            .attr("class", "annotation")
+            .attr("x", innerWidth / 2)
+            .attr("y", innerHeight / 2)
+            .attr("text-anchor", "middle")
+            .style("font-size", "16px")
+            .text("Add trials to start the simulation.");
+    }
+}
+
+function addTrials(count) {
+    const probability = Number(simulationProbabilityInput.value);
+
+    for (let index = 0; index < count; index += 1) {
+        simulationTrials.push(Math.random() < probability ? 1 : 0);
+    }
+
+    updateSimulationChart();
+}
+
+function resetSimulation() {
+    simulationTrials = [];
+    updateSimulationChart();
+}
+
+function updateLessonFlow(shouldScroll = false) {
+    const totalSteps = lessonSections.length;
+
+    lessonSections.forEach((section, index) => {
+        const isVisible = index <= currentLessonStep;
+        const isCurrent = index === currentLessonStep;
+
+        section.hidden = !isVisible;
+        section.classList.toggle("is-current", isCurrent);
+    });
+
+    lessonNarration.textContent = lessonNarratives[currentLessonStep].text;
+    lessonStepLabel.textContent = `Step ${currentLessonStep + 1} of ${totalSteps}: ${lessonNarratives[currentLessonStep].title}`;
+    lessonProgressFill.style.width = `${((currentLessonStep + 1) / totalSteps) * 100}%`;
+    lessonPrevButton.disabled = currentLessonStep === 0;
+    lessonNextButton.disabled = currentLessonStep === totalSteps - 1;
+
+    if (shouldScroll) {
+        lessonSections[currentLessonStep].scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+}
+
+distributionTypeSelect.addEventListener("change", updateDistributionComparison);
+dieEventSelect.addEventListener("change", updateDieVisualization);
+
+trialCountInput.addEventListener("input", updateBinomialChart);
+successProbabilityInput.addEventListener("input", updateBinomialChart);
+
+simulationProbabilityInput.addEventListener("input", () => {
+    simulationProbabilityValue.textContent = Number(simulationProbabilityInput.value).toFixed(2);
+    resetSimulation();
+});
+
+poissonRateInput.addEventListener("input", updateDistributionComparison);
+normalMeanInput.addEventListener("input", updateDistributionComparison);
+normalStdInput.addEventListener("input", updateDistributionComparison);
+zeroMassInput.addEventListener("input", updateDistributionComparison);
+positiveMeanInput.addEventListener("input", updateDistributionComparison);
+learningDatasetSelect.addEventListener("change", updateLearningComparison);
+conceptTimeInput.addEventListener("input", updateConceptVisualization);
+
+lessonPrevButton.addEventListener("click", () => {
+    currentLessonStep = Math.max(0, currentLessonStep - 1);
+    updateLessonFlow(true);
+});
+
+lessonNextButton.addEventListener("click", () => {
+    currentLessonStep = Math.min(lessonSections.length - 1, currentLessonStep + 1);
+    updateLessonFlow(true);
+});
+
+addTrialButtons.forEach((button) => {
+    button.addEventListener("click", () => {
+        addTrials(Number(button.dataset.addTrials));
+    });
+});
+
+resetButton.addEventListener("click", resetSimulation);
+
+updateDistributionComparison();
+updateConceptVisualization();
+updateDieVisualization();
+updateBinomialChart();
+updateLearningComparison();
+updateSimulationChart();
+updateLessonFlow();

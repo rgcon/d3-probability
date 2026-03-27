@@ -1,0 +1,478 @@
+:root {
+    --bg: #f4efe6;
+    --bg-strong: #efe5d3;
+    --card: rgba(255, 252, 246, 0.82);
+    --ink: #1b1f1e;
+    --muted: #5d655f;
+    --accent: #d95d39;
+    --accent-soft: #f1b38d;
+    --secondary: #2c7a7b;
+    --secondary-soft: #bfe3da;
+    --line: rgba(27, 31, 30, 0.12);
+    --shadow: 0 24px 70px rgba(64, 39, 21, 0.12);
+}
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    font-family: "Space Grotesk", "Segoe UI", sans-serif;
+    color: var(--ink);
+    background:
+        radial-gradient(circle at top left, rgba(217, 93, 57, 0.18), transparent 26%),
+        radial-gradient(circle at top right, rgba(44, 122, 123, 0.2), transparent 28%),
+        linear-gradient(180deg, #fbf7f0 0%, var(--bg) 45%, #efe7da 100%);
+}
+
+body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    background-image: linear-gradient(rgba(27, 31, 30, 0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(27, 31, 30, 0.03) 1px, transparent 1px);
+    background-size: 36px 36px;
+    mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.42), transparent 82%);
+}
+
+.page-shell {
+    position: relative;
+    max-width: 1240px;
+    margin: 0 auto;
+    padding: 32px 20px 72px;
+}
+
+.hero,
+.panel {
+    position: relative;
+    overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.58);
+    border-radius: 28px;
+    background: var(--card);
+    backdrop-filter: blur(18px);
+    box-shadow: var(--shadow);
+}
+
+.hero {
+    padding: 44px;
+    margin-bottom: 24px;
+}
+
+.hero::after,
+.panel::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.25), transparent 46%);
+}
+
+.eyebrow,
+.module-kicker,
+.metric-label {
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    font-size: 0.72rem;
+    color: var(--muted);
+}
+
+h1,
+h2 {
+    margin: 0;
+    font-family: "Fraunces", Georgia, serif;
+    font-weight: 700;
+    line-height: 1.02;
+}
+
+h1 {
+    max-width: 10ch;
+    margin-top: 10px;
+    font-size: clamp(2.7rem, 7vw, 5.8rem);
+}
+
+h2 {
+    font-size: clamp(1.8rem, 4vw, 2.6rem);
+    margin-bottom: 12px;
+}
+
+p {
+    margin: 0;
+    line-height: 1.7;
+    color: var(--muted);
+}
+
+.hero-copy {
+    max-width: 72ch;
+    margin-top: 18px;
+    font-size: 1.05rem;
+}
+
+.hero-metrics,
+.intro-grid,
+.module,
+.lesson-flow,
+.concept-grid,
+.concept-bridge {
+    display: grid;
+    gap: 18px;
+}
+
+.hero-metrics {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    margin-top: 28px;
+}
+
+.hero-metrics div,
+.intro-grid article {
+    padding: 18px 20px;
+    border-radius: 20px;
+    background: rgba(255, 255, 255, 0.56);
+    border: 1px solid rgba(27, 31, 30, 0.06);
+}
+
+.intro-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    padding: 24px;
+    margin-bottom: 24px;
+}
+
+.concept-bridge {
+    padding: 24px 28px;
+    margin-bottom: 24px;
+}
+
+.concept-header {
+    display: grid;
+    gap: 12px;
+    max-width: 72ch;
+}
+
+.concept-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    align-items: start;
+}
+
+.concept-visual {
+    display: grid;
+    grid-template-columns: minmax(260px, 320px) minmax(0, 1fr);
+    gap: 18px;
+    align-items: start;
+}
+
+.concept-controls {
+    align-content: start;
+}
+
+.concept-card {
+    display: grid;
+    gap: 12px;
+}
+
+.concept-card h3 {
+    margin: 0;
+    font-family: "Fraunces", Georgia, serif;
+    font-size: 1.35rem;
+    line-height: 1.15;
+    color: var(--ink);
+}
+
+.concept-formula,
+.concept-summary {
+    display: grid;
+    gap: 8px;
+}
+
+.math-block {
+    padding: 10px 12px;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.62);
+    border: 1px solid rgba(27, 31, 30, 0.08);
+    color: var(--ink);
+}
+
+.module {
+    grid-template-columns: minmax(280px, 380px) minmax(0, 1fr);
+    padding: 28px;
+    margin-bottom: 24px;
+    align-items: start;
+}
+
+.lesson-flow {
+    grid-template-columns: minmax(0, 1.4fr) minmax(260px, 0.8fr);
+    padding: 24px 28px;
+    margin-bottom: 24px;
+    align-items: center;
+}
+
+.lesson-copy,
+.lesson-controls {
+    display: grid;
+    gap: 14px;
+}
+
+.lesson-progress-row {
+    display: grid;
+    gap: 10px;
+}
+
+.lesson-progress-track {
+    height: 10px;
+    border-radius: 999px;
+    background: rgba(27, 31, 30, 0.08);
+    overflow: hidden;
+}
+
+.lesson-progress-fill {
+    height: 100%;
+    width: 0;
+    border-radius: inherit;
+    background: linear-gradient(90deg, var(--secondary), var(--accent));
+    transition: width 220ms ease;
+}
+
+.lesson-buttons {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.module-copy {
+    display: grid;
+    gap: 14px;
+}
+
+.controls-row,
+.stacked-controls,
+.button-row,
+.stats-strip,
+.comparison-grid,
+.parameter-group {
+    display: grid;
+    gap: 10px;
+}
+
+.parameter-group[hidden] {
+    display: none;
+}
+
+.controls-row label,
+.stacked-controls label {
+    font-size: 0.95rem;
+    color: var(--ink);
+}
+
+select,
+input[type="range"],
+button {
+    width: 100%;
+}
+
+select,
+button {
+    border: 1px solid rgba(27, 31, 30, 0.12);
+    border-radius: 14px;
+    font: inherit;
+}
+
+select {
+    padding: 12px 14px;
+    background: rgba(255, 255, 255, 0.9);
+}
+
+input[type="range"] {
+    accent-color: var(--accent);
+}
+
+.button-row {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+button {
+    padding: 12px 14px;
+    cursor: pointer;
+    color: #fff;
+    background: linear-gradient(135deg, #c64d2b, var(--accent));
+    transition: transform 160ms ease, box-shadow 160ms ease, opacity 160ms ease;
+    box-shadow: 0 12px 24px rgba(217, 93, 57, 0.18);
+}
+
+button:hover {
+    transform: translateY(-1px);
+}
+
+button:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+button.ghost {
+    color: var(--ink);
+    background: rgba(255, 255, 255, 0.82);
+    box-shadow: none;
+}
+
+.formula-card,
+.stats-strip {
+    padding: 16px 18px;
+    border-radius: 18px;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.82), rgba(239, 229, 211, 0.66));
+    border: 1px solid rgba(27, 31, 30, 0.08);
+}
+
+.comparison-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.stats-strip {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.comparison-card {
+    padding: 16px 18px;
+    border-radius: 18px;
+    background: rgba(255, 255, 255, 0.7);
+    border: 1px solid rgba(27, 31, 30, 0.08);
+}
+
+.comparison-card strong {
+    display: block;
+    margin-bottom: 8px;
+    color: var(--ink);
+}
+
+.module-step {
+    transition: box-shadow 180ms ease, border-color 180ms ease;
+}
+
+.module-step.is-current {
+    border-color: rgba(217, 93, 57, 0.32);
+    box-shadow: 0 28px 80px rgba(217, 93, 57, 0.16);
+}
+
+.dataset-note {
+    padding: 12px 14px;
+    border-radius: 16px;
+    background: rgba(255, 255, 255, 0.72);
+    border: 1px solid rgba(27, 31, 30, 0.08);
+}
+
+.dataset-note strong {
+    display: block;
+    margin-bottom: 6px;
+    color: var(--ink);
+}
+
+.stats-strip strong,
+.formula-card strong {
+    display: block;
+    font-size: 1.25rem;
+    color: var(--ink);
+}
+
+.viz-card {
+    padding: 14px;
+    border-radius: 22px;
+    background: rgba(255, 255, 255, 0.6);
+    border: 1px solid rgba(27, 31, 30, 0.08);
+}
+
+.viz-card svg {
+    display: block;
+    width: 100%;
+    height: auto;
+    min-height: 320px;
+}
+
+.wide svg {
+    min-height: 360px;
+}
+
+.inline-math {
+    font-family: "Fraunces", Georgia, serif;
+    color: var(--ink);
+}
+
+.axis text,
+.axis-label,
+.annotation,
+.chart-title {
+    fill: var(--muted);
+    font-family: "Space Grotesk", "Segoe UI", sans-serif;
+}
+
+.chart-title {
+    fill: var(--ink);
+    font-size: 18px;
+    font-weight: 700;
+}
+
+.die-cell {
+    transition: transform 180ms ease, fill 180ms ease, stroke 180ms ease;
+}
+
+.die-label {
+    font-family: "Fraunces", Georgia, serif;
+    font-size: 38px;
+    fill: var(--ink);
+}
+
+.distribution-label {
+    font-family: "Space Grotesk", "Segoe UI", sans-serif;
+    font-size: 12px;
+    fill: var(--muted);
+}
+
+.legend-chip,
+.panel-label {
+    font-size: 12px;
+    fill: var(--muted);
+}
+
+.panel-label {
+    font-weight: 700;
+}
+
+@media (max-width: 960px) {
+    .hero {
+        padding: 32px;
+    }
+
+    .intro-grid,
+    .lesson-flow,
+    .module,
+    .concept-grid,
+    .concept-visual,
+    .hero-metrics,
+    .button-row,
+    .lesson-buttons,
+    .comparison-grid,
+    .stats-strip {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 640px) {
+    .page-shell {
+        padding: 18px 14px 48px;
+    }
+
+    .hero,
+    .panel,
+    .module {
+        border-radius: 22px;
+    }
+
+    .hero,
+    .module,
+    .intro-grid,
+    .concept-bridge {
+        padding: 18px;
+    }
+
+    .viz-card svg,
+    .wide svg {
+        min-height: 280px;
+    }
+}

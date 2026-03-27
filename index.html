@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Probability Theory with D3</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Fraunces:wght@500;700&family=Space+Grotesk:wght@400;500;700&display=swap"
+        rel="stylesheet" />
+    <link rel="stylesheet" href="./styles.css" />
+</head>
+
+<body>
+    <div class="page-shell">
+        <header class="hero">
+            <p class="eyebrow">Interactive D3 explainer</p>
+            <h1>Probability theory becomes clearer when you can move the assumptions.</h1>
+            <p class="hero-copy">
+                This page uses D3.js to show four core ideas: how event probability comes from a sample space,
+                how repeated trials create a distribution, how discrete, continuous, and mixed random variables differ,
+                and how long-run frequency stabilizes around the true probability.
+            </p>
+            <div class="hero-metrics">
+                <div>
+                    <span class="metric-label">Core idea</span>
+                    <strong>Probability = favorable outcomes / total outcomes</strong>
+                </div>
+                <div>
+                    <span class="metric-label">Visual language</span>
+                    <strong>Highlight, compare, simulate</strong>
+                </div>
+            </div>
+        </header>
+
+        <main>
+            <section class="panel intro-grid">
+                <article>
+                    <h2>What this demonstrates</h2>
+                    <p>
+                        Probability theory answers two related questions: what can happen, and how likely is each
+                        possibility?
+                        For simple experiments, we count outcomes. For repeated experiments, we study entire
+                        distributions.
+                        For real data, we simulate and watch the proportions settle. For modeling work, we also need to
+                        recognize whether the variable is discrete, continuous, or mixed.
+                    </p>
+                </article>
+                <article>
+                    <h2>How to read the visuals</h2>
+                    <p>
+                        The controls change the assumptions. The charts update immediately. That matters because
+                        probability is not
+                        a fixed picture; it depends on the model, the event, the kind of random variable, and the
+                        number of trials you are considering.
+                    </p>
+                </article>
+            </section>
+
+            <section class="panel concept-bridge">
+                <div class="concept-header">
+                    <p class="module-kicker">Math connection</p>
+                    <h2>Exponents, logarithms, and derivatives work as one system</h2>
+                    <p>
+                        Exponents, logarithms, and derivatives are all ways to describe how one quantity depends on
+                        another. Exponents model multiplicative dependence, logarithms invert that dependence, and
+                        derivatives measure its local rate of change. A clean way to see the connection is to follow
+                        one example all the way through.
+                    </p>
+                    <p>
+                        Suppose a quantity starts at 100 and doubles every hour, and let
+                        <span class="inline-math">f(t)</span> denote its value after <span class="inline-math">t</span>
+                        hours. Then the three ideas line up naturally: the exponential gives the rule, the logarithm
+                        recovers the input from the output, and the derivative tells us how fast the output is changing
+                        with respect to time.
+                    </p>
+                    <p>
+                        Notation in this section is fixed: <span class="inline-math">log<sub>2</sub></span> means a
+                        base-2 logarithm because the example doubles, while <span class="inline-math">log</span>
+                        without a subscript means the natural logarithm in the derivative formulas.
+                    </p>
+                </div>
+                <div class="concept-grid">
+                    <article class="comparison-card concept-card">
+                        <p class="module-kicker">Exponents</p>
+                        <h3>Exponents model multiplicative growth</h3>
+                        <p>
+                            If the quantity doubles each hour, then after <span class="inline-math">t</span> hours it is
+                            <span class="inline-math">f(t) = 100 · 2<sup>t</sup></span>. The exponent records how many
+                            times the doubling step has happened. Equal increases in time create equal multiplicative
+                            changes in the output.
+                        </p>
+                        <div class="formula-card concept-formula">
+                            <strong><span class="inline-math">f(t+1) = 2f(t)</span></strong>
+                            <p>
+                                One more hour means one more factor of 2. That is the role of the exponent: it counts
+                                repeated multiplication.
+                            </p>
+                        </div>
+                    </article>
+                    <article class="comparison-card concept-card">
+                        <p class="module-kicker">Logarithms</p>
+                        <h3>Logarithms analyze and compare growth</h3>
+                        <p>
+                            A logarithm reverses the exponential rule. If you want to know when the quantity reaches
+                            800, start with <span class="inline-math">f(t) = 800</span>. Since
+                            <span class="inline-math">f(t) = 100 · 2<sup>t</sup></span>, substitute that formula to get
+                            <span class="inline-math">100 · 2<sup>t</sup> = 800</span>. Dividing by 100 gives
+                            <span class="inline-math">2<sup>t</sup> = 8</span>, so
+                            <span class="inline-math">t = log<sub>2</sub>(8) = 3</span>. The logarithm tells you which
+                            exponent produced the observed value.
+                        </p>
+                        <div class="formula-card concept-formula">
+                            <strong><span class="inline-math">t = log<sub>2</sub>(f(t)/100)</span></strong>
+                            <p>
+                                This reverse step is why logarithms are useful in growth problems. Here we use
+                                <span class="inline-math">log<sub>2</sub></span> because the growth factor is 2, so the
+                                logarithm answers "how many doublings happened?"
+                            </p>
+                        </div>
+                    </article>
+                    <article class="comparison-card concept-card">
+                        <p class="module-kicker">Derivatives</p>
+                        <h3>Derivatives measure rate of change</h3>
+                        <p>
+                            A derivative measures growth or decay of one quantity with respect to another quantity.
+                            Here it tells us how the quantity changes with respect to time, not just over a full
+                            hour but at an instant. For this function,
+                            <span class="inline-math">f'(t) = 100 · log(2) · 2<sup>t</sup> = log(2)f(t)</span>. So the
+                            rate of change is proportional to the current amount: the bigger the quantity becomes, the
+                            faster it grows.
+                        </p>
+                        <div class="formula-card concept-formula">
+                            <strong><span class="inline-math">f'(t) = log(2)f(t)</span></strong>
+                            <p>
+                                In analytic terms this is a rate of change. In geometric terms, if you draw the graph,
+                                the same derivative appears as the slope of the tangent line at that point. When the
+                                base is <span class="inline-math">e</span>, the formula becomes even cleaner because
+                                <span class="inline-math">d/dx e<sup>x</sup> = e<sup>x</sup></span>. The symbol
+                                <span class="inline-math">log</span> is used here to denote the natural logarithm,
+                                which is the logarithm that appears in derivatives of exponentials.
+                            </p>
+                            <p>
+                                For example, at <span class="inline-math">t = 1</span> we have
+                                <span class="inline-math">f(1) = 200</span>, so
+                                <span class="inline-math">f'(1) = 200 log(2) ≈ 138.6</span> units per hour. That is
+                                the instantaneous rate at <span class="inline-math">t = 1</span>, not the total gain
+                                over the next full hour. The average change from <span class="inline-math">t = 1</span>
+                                to <span class="inline-math">t = 2</span> is
+                                <span class="inline-math">(400 - 200)/(2 - 1) = 200</span> units per hour.
+                            </p>
+                        </div>
+                    </article>
+                </div>
+                <div class="concept-visual">
+                    <div class="module-copy concept-controls">
+                        <p class="module-kicker">Interactive view</p>
+                        <h3>See one point through all three lenses</h3>
+                        <p>
+                            Move the time slider. The left panel shows the exponential growth curve and the tangent line
+                            that represents the derivative at that moment. The right panel shows the inverse logarithmic
+                            view for the same quantity.
+                        </p>
+                        <label for="concept-time">Time t: <strong id="concept-time-value">3.0</strong> hours</label>
+                        <input id="concept-time" type="range" min="0" max="5" step="0.1" value="3" />
+                        <div class="formula-card" id="concept-live-summary"></div>
+                    </div>
+                    <div class="viz-card wide">
+                        <svg id="concept-svg"
+                            aria-label="Relationship between exponential growth, logarithms, and derivatives"></svg>
+                    </div>
+                </div>
+                <div class="formula-card concept-summary">
+                    <strong><span class="inline-math">One dependence, three views: model it, invert it, differentiate
+                            it.</span></strong>
+                    <p>
+                        In this example, exponents gave the growth law <span class="inline-math">f(t) = 100 ·
+                            2<sup>t</sup></span>,
+                        logarithms answered the inverse question "when do we reach a target?", and derivatives measured
+                        the instantaneous growth rate.
+                    </p>
+                    <p>
+                        Probability and statistics use the same pattern. Exponentials appear in growth and decay
+                        models, logarithms simplify multiplicative relationships such as likelihoods, and derivatives
+                        are used to measure sensitivity, rates, slopes, and best-fitting parameters.
+                    </p>
+                    <p class="math-block"><span class="inline-math">multiplicative dependence -> inverse log view ->
+                            derivative for local change or optimization</span></p>
+                </div>
+            </section>
+
+            <section class="panel lesson-flow">
+                <div class="lesson-copy">
+                    <p class="module-kicker">Guided lesson</p>
+                    <h2>Move through the ideas in order</h2>
+                    <p id="lesson-narration">
+                        Start with the type of random variable. That choice determines whether we talk about exact point
+                        probabilities, interval probabilities, or a combination of both.
+                    </p>
+                </div>
+                <div class="lesson-controls">
+                    <div class="lesson-progress-row">
+                        <span class="metric-label" id="lesson-step-label">Step 1 of 5</span>
+                        <div class="lesson-progress-track" aria-hidden="true">
+                            <div class="lesson-progress-fill" id="lesson-progress-fill"></div>
+                        </div>
+                    </div>
+                    <div class="button-row lesson-buttons">
+                        <button id="lesson-prev" class="ghost" type="button">Previous step</button>
+                        <button id="lesson-next" type="button">Next step</button>
+                    </div>
+                </div>
+            </section>
+
+            <section class="panel module module-step" data-step="0">
+                <div class="module-copy">
+                    <p class="module-kicker">1. Distribution families</p>
+                    <h2>Discrete, continuous, and mixed variables</h2>
+                    <p>
+                        The first modeling decision is the variable type. Discrete variables place probability on
+                        countable
+                        values. Continuous variables spread probability through a density over intervals. Mixed
+                        variables do
+                        both, usually with a point mass plus a continuous component.
+                    </p>
+                    <div class="controls-row">
+                        <label for="distribution-type">Choose a distribution family</label>
+                        <select id="distribution-type">
+                            <option value="discrete">Discrete distribution</option>
+                            <option value="continuous">Continuous distribution</option>
+                            <option value="mixed">Mixed distribution</option>
+                        </select>
+                    </div>
+                    <div class="stacked-controls" id="distribution-parameters">
+                        <div class="parameter-group" data-family="discrete">
+                            <label for="poisson-rate">Poisson rate λ: <strong
+                                    id="poisson-rate-value">3.0</strong></label>
+                            <input id="poisson-rate" type="range" min="0.5" max="8" step="0.5" value="3" />
+                        </div>
+                        <div class="parameter-group" data-family="continuous" hidden>
+                            <label for="normal-mean">Normal mean μ: <strong id="normal-mean-value">5.0</strong></label>
+                            <input id="normal-mean" type="range" min="1" max="9" step="0.5" value="5" />
+                            <label for="normal-std">Normal standard deviation σ: <strong
+                                    id="normal-std-value">1.4</strong></label>
+                            <input id="normal-std" type="range" min="0.5" max="3" step="0.1" value="1.4" />
+                        </div>
+                        <div class="parameter-group" data-family="mixed" hidden>
+                            <label for="zero-mass">Zero-inflation mass π: <strong
+                                    id="zero-mass-value">0.35</strong></label>
+                            <input id="zero-mass" type="range" min="0.05" max="0.75" step="0.05" value="0.35" />
+                            <label for="positive-mean">Positive-part mean: <strong
+                                    id="positive-mean-value">4.0</strong></label>
+                            <input id="positive-mean" type="range" min="1" max="8" step="0.5" value="4" />
+                        </div>
+                    </div>
+                    <div class="formula-card" id="distribution-summary"></div>
+                    <div class="comparison-grid" id="learning-comparison"></div>
+                </div>
+                <div class="viz-card wide">
+                    <svg id="distribution-svg" aria-label="Distribution type comparison"></svg>
+                </div>
+            </section>
+
+            <section class="panel module module-step" data-step="1">
+                <div class="module-copy">
+                    <p class="module-kicker">2. Sample space and events</p>
+                    <h2>Start with a fair die</h2>
+                    <p>
+                        A fair six-sided die has six equally likely outcomes. An event is any subset of those outcomes.
+                        If the
+                        event contains 3 faces out of 6, its probability is 3/6 = 0.5.
+                    </p>
+                    <div class="controls-row">
+                        <label for="die-event">Choose an event</label>
+                        <select id="die-event">
+                            <option value="even">Even numbers</option>
+                            <option value="prime">Prime numbers</option>
+                            <option value="greater-than-4">Greater than 4</option>
+                            <option value="at-least-2">At least 2</option>
+                            <option value="exactly-1">Exactly 1</option>
+                        </select>
+                    </div>
+                    <div class="formula-card" id="die-summary"></div>
+                </div>
+                <div class="viz-card">
+                    <svg id="die-svg" aria-label="Die sample space visualization"></svg>
+                </div>
+            </section>
+
+            <section class="panel module module-step" data-step="2">
+                <div class="module-copy">
+                    <p class="module-kicker">3. Distributions from repeated trials</p>
+                    <h2>Binomial distribution</h2>
+                    <p>
+                        If each trial has success probability <span class="inline-math">p</span> and you repeat the
+                        trial
+                        <span class="inline-math">n</span> times, the number of successes follows a binomial
+                        distribution.
+                        The chart shows how the probability mass spreads across all possible counts.
+                    </p>
+                    <div class="stacked-controls">
+                        <label for="trial-count">Number of trials: <strong id="trial-count-value">10</strong></label>
+                        <input id="trial-count" type="range" min="1" max="20" value="10" />
+                        <label for="success-probability">Success probability p: <strong
+                                id="success-probability-value">0.50</strong></label>
+                        <input id="success-probability" type="range" min="0.05" max="0.95" step="0.05" value="0.5" />
+                    </div>
+                    <div class="stats-strip" id="binomial-stats"></div>
+                </div>
+                <div class="viz-card wide">
+                    <svg id="binomial-svg" aria-label="Binomial distribution chart"></svg>
+                </div>
+            </section>
+
+            <section class="panel module module-step" data-step="3">
+                <div class="module-copy">
+                    <p class="module-kicker">4. Learning goals</p>
+                    <h2>Classification versus inference</h2>
+                    <p>
+                        Machine learning often asks for the best prediction of a label or value. Statistical learning
+                        often
+                        asks what the data says about an effect, coefficient, or uncertainty interval. The datasets can
+                        look
+                        similar, but the questions are different.
+                    </p>
+                    <div class="controls-row">
+                        <label for="learning-dataset">Choose a dataset pair</label>
+                        <select id="learning-dataset">
+                            <option value="churn-trial">Customer churn vs blood-pressure trial</option>
+                            <option value="spam-ab">Spam filtering vs advertisement A/B test</option>
+                        </select>
+                    </div>
+                    <div class="comparison-grid" id="task-comparison"></div>
+                    <div class="formula-card" id="learning-summary"></div>
+                </div>
+                <div class="viz-card wide">
+                    <svg id="learning-svg" aria-label="Classification versus inference comparison"></svg>
+                </div>
+            </section>
+
+            <section class="panel module module-step" data-step="4">
+                <div class="module-copy">
+                    <p class="module-kicker">5. Long-run behavior</p>
+                    <h2>Law of large numbers</h2>
+                    <p>
+                        Individual outcomes are noisy. Running proportions are not. As the number of Bernoulli trials
+                        increases,
+                        the observed frequency tends to move toward the true underlying probability.
+                    </p>
+                    <div class="stacked-controls">
+                        <label for="simulation-probability">True probability p: <strong
+                                id="simulation-probability-value">0.50</strong></label>
+                        <input id="simulation-probability" type="range" min="0.1" max="0.9" step="0.05" value="0.5" />
+                    </div>
+                    <div class="button-row">
+                        <button data-add-trials="1">Add 1 trial</button>
+                        <button data-add-trials="25">Add 25 trials</button>
+                        <button data-add-trials="250">Add 250 trials</button>
+                        <button id="reset-simulation" class="ghost">Reset</button>
+                    </div>
+                    <div class="formula-card" id="simulation-summary"></div>
+                </div>
+                <div class="viz-card wide">
+                    <svg id="simulation-svg" aria-label="Running proportion simulation chart"></svg>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
+    <script src="./script.js"></script>
+</body>
+
+</html>
