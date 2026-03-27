@@ -664,10 +664,11 @@
                         <p class="module-kicker">7. Optimization foundations</p>
                         <h2>Loss Functions, Shannon Entropy, Gradient, and Gradient Descent</h2>
                         <p>
-                            Modern machine learning pipelines rely on four connected ideas: a loss function defines
-                            what "good" predictions mean, entropy quantifies uncertainty in data,
-                            gradients tell us the local direction of fastest increase, and gradient descent uses
-                            the negative gradient direction to iteratively reduce loss.
+                            These four concepts form a single workflow in machine learning. A loss function turns
+                            model quality into a number to minimize. Entropy describes how uncertain the target
+                            distribution is. Gradients describe how the loss changes when parameters move.
+                            Gradient descent then uses that slope information to update parameters in small steps
+                            until the model reaches a low-loss region.
                         </p>
 
                         <div class="foundation-card-grid">
@@ -675,19 +676,30 @@
                                 <p class="module-kicker">Loss function</p>
                                 <h3>How wrong is the prediction?</h3>
                                 <p>
-                                    A loss function maps prediction error to a scalar penalty. During training,
-                                    optimization tries to minimize the average loss over the dataset.
+                                    A loss function converts prediction quality into a single scalar objective.
+                                    During training, the model does not directly maximize "accuracy" at each step;
+                                    instead it minimizes average loss over a batch or the full dataset.
+                                    Different tasks use different losses: mean squared error for regression,
+                                    cross-entropy for classification, and custom weighted losses when certain
+                                    errors are more costly than others.
                                 </p>
                                 <div class="dist-rule-block">
                                     <span class="dist-rule-label">Example (MSE)</span>
                                     <code>L = (y - ŷ)²</code>
-                                    Larger errors receive larger penalties, so the model is pushed toward closer fits.
+                                    Squaring makes the loss non-negative and penalizes large mistakes strongly.
+                                    In optimization we usually minimize mean loss: (1/N) Σ(yᵢ - ŷᵢ)².
                                 </div>
                                 <svg id="loss-example-svg" class="foundation-mini-svg"
                                     aria-label="Mean squared error loss curve"></svg>
+                                <div class="mini-control-row">
+                                    <label for="loss-error-slider">Error e = <strong
+                                            id="loss-error-value">1.5</strong></label>
+                                    <input id="loss-error-slider" type="range" min="-3" max="3" step="0.1"
+                                        value="1.5" />
+                                </div>
                                 <p class="dist-example-note">
-                                    The parabola has its minimum at zero error, showing that exact prediction gives
-                                    the smallest possible loss.
+                                    The curve is symmetric around zero error. If prediction error doubles,
+                                    loss grows quadratically, which explains why MSE is sensitive to outliers.
                                 </p>
                             </article>
 
@@ -695,19 +707,29 @@
                                 <p class="module-kicker">Information theory</p>
                                 <h3>Shannon entropy measures uncertainty</h3>
                                 <p>
-                                    Entropy is highest when outcomes are maximally uncertain and lowest when one
-                                    outcome is almost certain.
+                                    Entropy is the expected information content of an outcome. If outcomes are very
+                                    predictable, new observations carry little information and entropy is low.
+                                    If outcomes are balanced and uncertain, each observation is informative and
+                                    entropy is high. This is why entropy appears in decision trees, coding,
+                                    and probabilistic model evaluation.
                                 </p>
                                 <div class="dist-rule-block">
                                     <span class="dist-rule-label">Binary entropy</span>
                                     <code>H(p) = -p log₂ p - (1-p) log₂(1-p)</code>
-                                    In binary outcomes, entropy peaks at <code>p = 0.5</code>.
+                                    The unit is bits. In binary cases, entropy is 1 bit at p=0.5 and approaches
+                                    0 bits as p goes to 0 or 1.
                                 </div>
                                 <svg id="entropy-example-svg" class="foundation-mini-svg"
                                     aria-label="Binary Shannon entropy curve"></svg>
+                                <div class="mini-control-row">
+                                    <label for="entropy-p-slider">Probability p = <strong
+                                            id="entropy-p-value">0.50</strong></label>
+                                    <input id="entropy-p-slider" type="range" min="0.01" max="0.99" step="0.01"
+                                        value="0.5" />
+                                </div>
                                 <p class="dist-example-note">
-                                    The curve peaks at balanced outcomes and drops near 0 when outcomes become
-                                    predictable.
+                                    Maximum uncertainty occurs at a fair split. Highly imbalanced classes have lower
+                                    entropy, meaning the label is easier to guess even before seeing features.
                                 </p>
                             </article>
 
@@ -715,19 +737,28 @@
                                 <p class="module-kicker">Gradient</p>
                                 <h3>Direction and rate of steepest increase</h3>
                                 <p>
-                                    The gradient vector points in the direction where a function increases fastest.
-                                    Its magnitude indicates local steepness.
+                                    For a scalar function, the derivative is local slope; for many parameters,
+                                    the gradient is the vector of all partial derivatives. It tells how sensitive
+                                    loss is to each parameter at the current point. A near-zero gradient often means
+                                    you are near a flat region or local optimum.
                                 </p>
                                 <div class="dist-rule-block">
                                     <span class="dist-rule-label">Multivariable form</span>
                                     <code>∇f = [∂f/∂x₁, ∂f/∂x₂, ..., ∂f/∂xₙ]</code>
-                                    Optimization uses this local slope information to update parameters.
+                                    Each component gives direction and strength of change for one parameter.
+                                    Backpropagation computes this gradient efficiently in deep networks.
                                 </div>
                                 <svg id="gradient-example-svg" class="foundation-mini-svg"
                                     aria-label="Gradient vector on a convex function"></svg>
+                                <div class="mini-control-row">
+                                    <label for="gradient-x-slider">Point x = <strong
+                                            id="gradient-x-value">1.4</strong></label>
+                                    <input id="gradient-x-slider" type="range" min="-2" max="2" step="0.1"
+                                        value="1.4" />
+                                </div>
                                 <p class="dist-example-note">
-                                    At a point on the curve, the tangent slope gives gradient information used
-                                    to decide the update direction.
+                                    Positive slope means moving right increases loss, so descent moves left.
+                                    Negative slope means the opposite. The steeper the slope, the larger the update.
                                 </p>
                             </article>
 
@@ -735,19 +766,28 @@
                                 <p class="module-kicker">Gradient descent</p>
                                 <h3>Iterative optimization by moving downhill</h3>
                                 <p>
-                                    Starting from an initial parameter guess, gradient descent repeatedly updates
-                                    parameters in the negative gradient direction to reduce loss.
+                                    Gradient descent is an iterative numerical method. Start from initial parameters,
+                                    compute gradient, then step opposite to it. Repeat until improvement becomes small.
+                                    In practice we use batch, stochastic, or mini-batch variants depending on data size
+                                    and stability requirements.
                                 </p>
                                 <div class="dist-rule-block">
                                     <span class="dist-rule-label">Update rule</span>
                                     <code>θₜ₊₁ = θₜ - η ∇L(θₜ)</code>
-                                    Learning rate <code>η</code> controls the step size each iteration.
+                                    Learning rate η is critical: too large can overshoot or diverge,
+                                    too small converges slowly. Schedules and optimizers like Adam adapt this process.
                                 </div>
                                 <svg id="descent-example-svg" class="foundation-mini-svg"
                                     aria-label="Gradient descent steps on a loss curve"></svg>
+                                <div class="mini-control-row">
+                                    <label for="descent-lr-slider">Learning rate η = <strong
+                                            id="descent-lr-value">0.25</strong></label>
+                                    <input id="descent-lr-slider" type="range" min="0.05" max="0.45" step="0.01"
+                                        value="0.25" />
+                                </div>
                                 <p class="dist-example-note">
-                                    Successive points move toward the minimum of the loss surface as updates are
-                                    applied.
+                                    The optimization path illustrates convergence: early steps are larger,
+                                    later steps shrink near the minimum where gradients are small.
                                 </p>
                             </article>
                         </div>
