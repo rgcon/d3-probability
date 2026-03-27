@@ -8,14 +8,42 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-        href="https://fonts.googleapis.com/css2?family=Fraunces:wght@500;700&family=Space+Grotesk:wght@400;500;700&display=swap"
+        href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&family=Roboto+Mono:wght@400;500&display=swap"
         rel="stylesheet" />
     <link rel="stylesheet" href="./styles.css" />
 </head>
 
 <body>
-    <div class="page-shell">
-        <header class="hero">
+
+    <header class="site-header">
+        <a href="#" class="site-header-logo">
+            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+                <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+                <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" fill="#FBBC05"/>
+                <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+            </svg>
+        </a>
+        <span class="site-header-product">Probability Theory <span>with D3</span></span>
+    </header>
+
+    <div class="site-body">
+
+        <nav class="sidebar" aria-label="Page navigation">
+            <div class="sidebar-section-title">Overview</div>
+            <a href="#intro">Introduction</a>
+            <a href="#math-connection">Math connection</a>
+            <a href="#guided-lesson">Guided lesson</a>
+            <div class="sidebar-section-title">Modules</div>
+            <a href="#distributions">1. Distribution families</a>
+            <a href="#sample-space">2. Sample space</a>
+            <a href="#binomial">3. Binomial</a>
+            <a href="#learning-goals">4. Learning goals</a>
+            <a href="#simulation">5. Law of large numbers</a>
+        </nav>
+
+        <div class="page-shell">
+        <header class="hero" id="intro">
             <p class="eyebrow">Interactive D3 explainer</p>
             <h1>Probability theory becomes clearer when you can move the assumptions.</h1>
             <p class="hero-copy">
@@ -59,7 +87,7 @@
                 </article>
             </section>
 
-            <section class="panel concept-bridge">
+            <section class="panel concept-bridge" id="math-connection">
                 <div class="concept-header">
                     <p class="module-kicker">Math connection</p>
                     <h2>Exponents, logarithms, and derivatives work as one system</h2>
@@ -191,7 +219,7 @@
                 </div>
             </section>
 
-            <section class="panel lesson-flow">
+            <section class="panel lesson-flow" id="guided-lesson">
                 <div class="lesson-copy">
                     <p class="module-kicker">Guided lesson</p>
                     <h2>Move through the ideas in order</h2>
@@ -214,7 +242,7 @@
                 </div>
             </section>
 
-            <section class="panel module module-step" data-step="0">
+            <section class="panel module module-step" data-step="0" id="distributions">
                 <div class="module-copy">
                     <p class="module-kicker">1. Distribution families</p>
                     <h2>Discrete, continuous, and mixed variables</h2>
@@ -263,7 +291,7 @@
                 </div>
             </section>
 
-            <section class="panel module module-step" data-step="1">
+            <section class="panel module module-step" data-step="1" id="sample-space">
                 <div class="module-copy">
                     <p class="module-kicker">2. Sample space and events</p>
                     <h2>Start with a fair die</h2>
@@ -289,7 +317,7 @@
                 </div>
             </section>
 
-            <section class="panel module module-step" data-step="2">
+            <section class="panel module module-step" data-step="2" id="binomial">
                 <div class="module-copy">
                     <p class="module-kicker">3. Distributions from repeated trials</p>
                     <h2>Binomial distribution</h2>
@@ -314,7 +342,7 @@
                 </div>
             </section>
 
-            <section class="panel module module-step" data-step="3">
+            <section class="panel module module-step" data-step="3" id="learning-goals">
                 <div class="module-copy">
                     <p class="module-kicker">4. Learning goals</p>
                     <h2>Classification versus inference</h2>
@@ -340,7 +368,7 @@
                 </div>
             </section>
 
-            <section class="panel module module-step" data-step="4">
+            <section class="panel module module-step" data-step="4" id="simulation">
                 <div class="module-copy">
                     <p class="module-kicker">5. Long-run behavior</p>
                     <h2>Law of large numbers</h2>
@@ -367,6 +395,7 @@
                 </div>
             </section>
         </main>
+        </div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
