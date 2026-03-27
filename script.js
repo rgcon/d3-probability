@@ -76,12 +76,12 @@ const distributionTypes = {
 
 const learningDatasets = {
     "churn-trial": {
-        label: "Customer churn vs blood-pressure trial",
+        label: "Customer churn (ML) vs blood-pressure trial (Stats)",
         classification: {
-            title: "Classification dataset",
+            title: "Machine learning dataset",
             subtitle: "Telecom churn records",
             description:
-                "Each row contains customer tenure, support tickets, monthly spend, and a churn label. The objective is to predict who will leave next month.",
+                "Each row contains customer tenure, support tickets, and monthly spend with a churn label. The ML model learns which combinations of features predict who will leave — accuracy on held-out customers is the measure of success.",
             points: [
                 { x: 1.2, y: 7.8, label: 1 },
                 { x: 1.9, y: 7.1, label: 1 },
@@ -98,25 +98,25 @@ const learningDatasets = {
             yLabel: "Monthly support tickets",
         },
         inference: {
-            title: "Inference dataset",
+            title: "Statistical model dataset",
             subtitle: "Blood-pressure randomized trial",
             description:
-                "Each row contains treatment assignment, baseline blood pressure, and outcome after eight weeks. The objective is to estimate the treatment effect and its uncertainty.",
+                "Patients are randomly assigned to treatment or control. A statistical model estimates the treatment effect on blood pressure reduction, with a confidence interval that communicates how uncertain that estimate is.",
             groups: [
                 { label: "Control", mean: 2.1, low: 0.9, high: 3.4 },
                 { label: "Treatment", mean: 6.4, low: 5.0, high: 7.6 },
             ],
-            effect: "Estimated treatment effect: -4.3 mmHg with uncertainty interval.",
+            effect: "Estimated treatment effect: −4.3 mmHg (95% CI: −5.6 to −3.0 mmHg).",
             yLabel: "Mean reduction (mmHg)",
         },
     },
     "spam-ab": {
-        label: "Spam filtering vs advertisement A/B test",
+        label: "Spam filtering (ML) vs ad A/B test (Stats)",
         classification: {
-            title: "Classification dataset",
+            title: "Machine learning dataset",
             subtitle: "Email spam corpus",
             description:
-                "Each message is turned into features such as suspicious-word count and sender reputation. The model predicts spam versus not spam.",
+                "Each message is represented by features such as suspicious-word count and sender reputation score. The ML model learns a decision boundary that predicts spam vs. not spam on new, unseen emails.",
             points: [
                 { x: 1.0, y: 8.0, label: 1 },
                 { x: 1.8, y: 7.2, label: 1 },
@@ -133,15 +133,15 @@ const learningDatasets = {
             yLabel: "Suspicious phrase count",
         },
         inference: {
-            title: "Inference dataset",
+            title: "Statistical model dataset",
             subtitle: "Advertisement A/B experiment",
             description:
-                "Users are randomly assigned to ad A or ad B. The analyst wants to estimate the uplift in click-through rate and determine whether the effect is credibly different from zero.",
+                "Users are randomly assigned to ad A or ad B. A statistical model estimates the uplift in click-through rate, tests whether the difference is statistically significant, and quantifies how confident we can be in the conclusion.",
             groups: [
                 { label: "Ad A", mean: 3.2, low: 2.7, high: 3.7 },
                 { label: "Ad B", mean: 4.4, low: 3.9, high: 4.9 },
             ],
-            effect: "Estimated uplift: +1.2 percentage points with an uncertainty interval.",
+            effect: "Estimated uplift: +1.2 percentage points (95% CI: +0.6 to +1.8 pp).",
             yLabel: "Click-through rate (%)",
         },
     },
@@ -162,7 +162,7 @@ const lessonNarratives = [
     },
     {
         title: "Separate prediction from explanation",
-        text: "Classification focuses on accurate labels for future cases. Inference focuses on estimating effects and uncertainty from data collected under a design.",
+        text: "Distinguish prediction from inference. Machine learning learns patterns to make accurate predictions. Statistical models interpret data to estimate effects and communicate uncertainty about what the data implies.",
     },
     {
         title: "Watch frequency stabilize",
@@ -827,22 +827,22 @@ function updateLearningComparison() {
 
     taskComparison.innerHTML = `
     <div class="comparison-card">
-      <span class="metric-label">Classification dataset</span>
+      <span class="metric-label">Machine learning</span>
       <strong>${dataset.classification.subtitle}</strong>
       <p>${dataset.classification.description}</p>
     </div>
     <div class="comparison-card">
-      <span class="metric-label">Inference dataset</span>
+      <span class="metric-label">Statistical model</span>
       <strong>${dataset.inference.subtitle}</strong>
       <p>${dataset.inference.description}</p>
     </div>
   `;
 
     learningSummary.innerHTML = `
-    <span class="metric-label">Goal contrast</span>
+    <span class="metric-label">Key distinction</span>
     <strong>${dataset.label}</strong>
-    <p><strong>Classification:</strong> optimize predictive accuracy for future labels.</p>
-    <p><strong>Inference:</strong> estimate an effect size and communicate uncertainty.</p>
+    <p><strong>Machine learning:</strong> learns patterns from data to predict future outcomes accurately.</p>
+    <p><strong>Statistical model:</strong> interprets data to derive inferences — estimating effect sizes and communicating uncertainty.</p>
     <p>${dataset.inference.effect}</p>
   `;
 
@@ -865,14 +865,14 @@ function updateLearningComparison() {
         .attr("class", "panel-label")
         .attr("x", 0)
         .attr("y", -12)
-        .text("Classification: predict the label");
+        .text("Machine learning: predict the outcome");
 
     rightPanel
         .append("text")
         .attr("class", "panel-label")
         .attr("x", 0)
         .attr("y", -12)
-        .text("Inference: estimate the effect");
+        .text("Statistical model: estimate the effect");
 
     const classX = d3.scaleLinear().domain([0, 10]).range([0, panelWidth]);
     const classY = d3.scaleLinear().domain([0, 10]).range([innerHeight, 0]);

@@ -510,7 +510,7 @@ button.ghost:hover {
 
 .module-step.is-current {
     border-color: var(--blue);
-    box-shadow: 0 1px 2px rgba(26,115,232,.2), 0 2px 6px 2px rgba(26,115,232,.1);
+    box-shadow: 0 1px 2px rgba(26, 115, 232, .2), 0 2px 6px 2px rgba(26, 115, 232, .1);
 }
 
 .dataset-note {
@@ -690,13 +690,29 @@ button.ghost:hover {
     border-top-width: 3px;
 }
 
-.dist-type-discrete  { border-top-color: #4285f4; }
-.dist-type-continuous { border-top-color: #34a853; }
-.dist-type-mixed      { border-top-color: #fbbc04; }
+.dist-type-discrete {
+    border-top-color: #4285f4;
+}
 
-.dist-type-discrete  .module-kicker { color: #4285f4; }
-.dist-type-continuous .module-kicker { color: #34a853; }
-.dist-type-mixed      .module-kicker { color: #e37400; }
+.dist-type-continuous {
+    border-top-color: #34a853;
+}
+
+.dist-type-mixed {
+    border-top-color: #fbbc04;
+}
+
+.dist-type-discrete .module-kicker {
+    color: #4285f4;
+}
+
+.dist-type-continuous .module-kicker {
+    color: #34a853;
+}
+
+.dist-type-mixed .module-kicker {
+    color: #e37400;
+}
 
 .dist-type-card h3 {
     font-size: 0.95rem;
@@ -705,7 +721,7 @@ button.ghost:hover {
     color: var(--text);
 }
 
-.dist-type-card > p {
+.dist-type-card>p {
     font-size: 13px;
     margin: 0;
 }
@@ -777,4 +793,3 @@ button.ghost:hover {
         grid-template-columns: 1fr;
     }
 }
-
